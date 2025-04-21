@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Link Copy UI</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #ececec, #d2d2d2);
+    }
+
+    .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      width: 270px;
+      height: 50px;
+      border-radius: 10px;
+      position: relative;
+      border: 2px solid #000000;
+      background-color: #fff;
+    }
+
+    .prefix {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      font-size: 15px;
+      height: 100%;
+      width: 70px;
+      font-weight: 600;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border-radius: 10px 0px 0px 10px;
+    }
+
+    .myinput-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      outline: none;
+      font-weight: 500;
+      border: none;
+      padding: 0px 10px;
+      height: 100%;
+      width: 160px;
+      background-color: #fff;
+      font-size: 15px;
+    }
+
+    .link-icon {
+      font-size: 16px;
+      background-color: #fff;
+      height: 100%;
+      width: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-right: 10px;
+      border-radius: 0px 10px 10px 0px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .tooltip {
+      position: absolute;
+      top: -40px;
+      right: -10px;
+      opacity: 0;
+      background-color: #ffe53b;
+      background-image: linear-gradient(147deg, #f0f0f0 0%, #000000 74%);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition-duration: 0.2s;
+      pointer-events: none;
+      letter-spacing: 0.5px;
+      z-index: 10;
+    }
+
+    .tooltip::before {
+      position: absolute;
+      content: "";
+      width: 10px;
+      height: 10px;
+      background-color: #000000;
+      background-size: 1000%;
+      background-position: center;
+      transform: rotate(45deg);
+      bottom: -15%;
+      transition-duration: 0.3s;
+    }
+
+    .link-icon:hover .tooltip {
+      opacity: 1;
+      transition-duration: 0.3s;
+    }
+
+    @media (max-width: 320px) {
+      .container {
+        width: 95%;
+      }
+      .myinput-link {
+        width: 100px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <span class="prefix">http://</span>
+    <input class="myinput-link" placeholder="Site.com" />
+    <span class="link-icon" id="copyBtn">
+      🔗
+      <span class="tooltip" id="tooltipText">COPY</span>
+    </span>
+  </div>
+
+  <script>
+    const copyBtn = document.getElementById('copyBtn');
+    const tooltip = document.getElementById('tooltipText');
+    const input = document.querySelector('.myinput-link');
+    const prefix = document.querySelector('.prefix').textContent;
+
+    copyBtn.addEventListener('click', () => {
+      const fullUrl = prefix + input.value;
+      navigator.clipboard.writeText(fullUrl).then(() => {
+        tooltip.textContent = "COPIED!";
+        setTimeout(() => {
+          tooltip.textContent = "COPY";
+        }, 2000);
+      });
+    });
+  </script>
+
+</body>
+</html>
