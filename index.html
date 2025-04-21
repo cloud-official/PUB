@@ -144,6 +144,266 @@
     <div class="newtons-cradle__dot"></div>
     <div class="newtons-cradle__dot"></div>
   </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Search Love</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      background: linear-gradient(270deg, #ff9a9e, #fad0c4, #fbc2eb, #a18cd1);
+      background-size: 800% 800%;
+      animation: backgroundShift 20s ease infinite;
+    }
+
+    @keyframes backgroundShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .title {
+      font-size: 36px;
+      font-weight: 700;
+      color: #fff;
+      margin-top: 50px;
+      text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .subtitle {
+      font-size: 18px;
+      color: #f8f8f8;
+      margin-bottom: 25px;
+    }
+
+    .search-container {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border-radius: 40px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      overflow: hidden;
+      width: 90%;
+      max-width: 500px;
+      border: 2px solid #000;
+      margin-bottom: 20px;
+    }
+
+    .prefix {
+      padding: 0 15px;
+      background: #eee;
+      font-weight: 600;
+      font-size: 16px;
+      white-space: nowrap;
+      color: #333;
+      user-select: none;
+    }
+
+    .myinput-link {
+      flex: 1;
+      border: none;
+      outline: none;
+      padding: 15px;
+      font-size: 16px;
+      font-weight: 500;
+      background: transparent;
+    }
+
+    .search-btn {
+      background: #111;
+      color: #fff;
+      border: none;
+      padding: 0 25px;
+      font-size: 16px;
+      font-weight: bold;
+      height: 100%;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .search-btn:hover {
+      background: #333;
+    }
+
+    iframe {
+      margin-top: 20px;
+      width: 90%;
+      height: 70vh;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      display: none;
+      background: #fff;
+    }
+
+    .newtons-cradle {
+      --uib-size: 60px;
+      --uib-speed: 1.2s;
+      --uib-color: #fff;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      margin-top: 20px;
+      height: var(--uib-size);
+    }
+
+    .newtons-cradle__dot {
+      position: relative;
+      display: flex;
+      align-items: center;
+      height: 100%;
+      width: 25%;
+      transform-origin: center top;
+    }
+
+    .newtons-cradle__dot::after {
+      content: '';
+      display: block;
+      width: 100%;
+      height: 25%;
+      border-radius: 50%;
+      background-color: var(--uib-color);
+    }
+
+    .newtons-cradle__dot:first-child {
+      animation: swing var(--uib-speed) linear infinite;
+    }
+
+    .newtons-cradle__dot:last-child {
+      animation: swing2 var(--uib-speed) linear infinite;
+    }
+
+    @keyframes swing {
+      0% { transform: rotate(0deg); animation-timing-function: ease-out; }
+      25% { transform: rotate(70deg); animation-timing-function: ease-in; }
+      50% { transform: rotate(0deg); animation-timing-function: linear; }
+    }
+
+    @keyframes swing2 {
+      0% { transform: rotate(0deg); animation-timing-function: linear; }
+      50% { transform: rotate(0deg); animation-timing-function: ease-out; }
+      75% { transform: rotate(-70deg); animation-timing-function: ease-in; }
+    }
+
+    .supported-sites {
+      margin: 40px auto 10px;
+      color: #fff;
+      font-size: 16px;
+      text-align: center;
+      background: rgba(0,0,0,0.2);
+      padding: 10px 20px;
+      border-radius: 12px;
+      backdrop-filter: blur(4px);
+    }
+
+    .supported-sites ul {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 0;
+    }
+
+    .supported-sites li {
+      margin: 5px 0;
+      font-weight: 500;
+    }
+
+    @media (max-width: 500px) {
+      .title {
+        font-size: 26px;
+        margin-top: 30px;
+      }
+
+      .subtitle {
+        font-size: 16px;
+      }
+
+      .search-container {
+        flex-direction: column;
+        border-radius: 20px;
+        overflow: hidden;
+      }
+
+      .prefix, .myinput-link, .search-btn {
+        width: 100%;
+        text-align: center;
+      }
+
+      .search-btn {
+        border-radius: 0 0 20px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="title">Love. Life. Search.</div>
+  <div class="subtitle">Explore the web you love</div>
+
+  <div class="search-container">
+    <span class="prefix">https://</span>
+    <input class="myinput-link" placeholder="example.com" />
+    <button class="search-btn" id="searchBtn">Search</button>
+  </div>
+
+  <div class="newtons-cradle" id="loader">
+    <div class="newtons-cradle__dot"></div>
+    <div class="newtons-cradle__dot"></div>
+    <div class="newtons-cradle__dot"></div>
+    <div class="newtons-cradle__dot"></div>
+  </div>
+
+  <iframe id="resultFrame"></iframe>
+
+  <div class="supported-sites">
+    <strong>Supported Sites for Iframe:</strong>
+    <ul>
+      <li>1v1.lol</li>
+      <li>szgames.xyz</li>
+      <li>html5.gamedistribution.com</li>
+      <li>tiny-fishing.com</li>
+      <li>classic.minecraft.net</li>
+    </ul>
+  </div>
+
+  <script>
+    const searchBtn = document.getElementById('searchBtn');
+    const input = document.querySelector('.myinput-link');
+    const frame = document.getElementById('resultFrame');
+    const loader = document.getElementById('loader');
+    const prefix = "https://";
+
+    searchBtn.addEventListener('click', () => {
+      const query = input.value.trim();
+      if (!query) return;
+
+      const url = prefix + query;
+
+      loader.style.display = 'flex';
+      frame.style.display = 'none';
+
+      setTimeout(() => {
+        loader.style.display = 'none';
+        frame.src = url;
+        frame.style.display = 'block';
+      }, 2000);
+    });
+  </script>
+
+</body>
+</html>
 
   <!-- Result -->
   <iframe id="resultFrame"></iframe>
