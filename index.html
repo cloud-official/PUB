@@ -100,7 +100,7 @@
       <ul>
         <li><button class="supported-link" data-query="https://sz-games.github.io">SZ Games</button> – All games even "Roblox".</li>
         <li><button class="supported-link" data-query="https://onlinegames.io">Online Games</button> – All iframe games to search.</li>
-        <li><button class="supported-link" data-query="https://www.google.com/search?q=Block+Blast+game">Block Blast</button> – Block puzzle fun.</li>
+        <li><button class="supported-link" data-query="Block Blast game">Block Blast</button> – Block puzzle fun.</li>
       </ul>
     </div>
   </div>
@@ -110,32 +110,35 @@
     const searchBtn = document.getElementById("searchBtn");
     const iframe = document.getElementById("iframe");
 
-    const directMatch = /\.(com|net|org|io|edu|gov|github\.io)/i;
+    const isDirectUrl = str => /\.(com|net|org|io|gov|edu|github\.io)(\/|$)/i.test(str);
 
-    function loadIframe(query) {
-      let url = query.trim();
-      if (!url) return;
+    function handleQuery(query) {
+      let trimmed = query.trim();
+      if (!trimmed) return;
 
-      // If it looks like a URL, try to add protocol if missing
-      if (directMatch.test(url)) {
-        if (!url.startsWith("http")) {
-          url = "https://" + url;
+      let url;
+      if (isDirectUrl(trimmed)) {
+        // Add https:// if missing
+        if (!/^https?:\/\//i.test(trimmed)) {
+          trimmed = "https://" + trimmed;
         }
-        iframe.src = url;
+        url = trimmed;
       } else {
-        // Optional: do nothing or clear iframe if not a link
-        alert("Only direct links with .com, .net, .io, etc. are allowed.");
+        // Bing search if not a direct domain
+        url = `https://www.bing.com/search?q=${encodeURIComponent(trimmed)}`;
       }
+
+      iframe.src = url;
     }
 
     searchBtn.addEventListener("click", () => {
-      loadIframe(input.value);
+      handleQuery(input.value);
     });
 
-    document.querySelectorAll('.supported-link').forEach(button => {
-      button.addEventListener('click', () => {
+    document.querySelectorAll(".supported-link").forEach(button => {
+      button.addEventListener("click", () => {
         input.value = button.dataset.query;
-        loadIframe(button.dataset.query);
+        handleQuery(button.dataset.query);
       });
     });
   </script>
