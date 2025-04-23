@@ -2,161 +2,243 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Game Hub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TIX PUB</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #f9f9f9;
-      color: #333;
-    }
-    header {
-      background: #222;
-      color: white;
-      padding: 20px;
-      text-align: center;
-    }
-    .container {
-      max-width: 900px;
-      margin: 40px auto;
-      padding: 20px;
-      background: white;
-      border-radius: 15px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-    }
-    #searchBar {
-      display: flex;
-      margin-bottom: 20px;
-    }
-    #input {
-      flex: 1;
-      padding: 10px;
-      font-size: 16px;
-      border: 2px solid #ccc;
-      border-radius: 10px 0 0 10px;
-    }
-    #searchBtn {
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      background: #007BFF;
-      color: white;
-      border-radius: 0 10px 10px 0;
-      cursor: pointer;
-    }
-    iframe {
-      width: 100%;
-      height: 500px;
-      border: none;
-      border-radius: 10px;
-    }
-    .supported ul {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 15px;
       padding: 0;
-      list-style: none;
-      margin-top: 20px;
-    }
-    .supported-link {
-      width: 100%;
-      background: #fff;
-      border: 2px solid #ddd;
-      border-radius: 15px;
-      padding: 15px 20px;
-      font-size: 16px;
-      font-weight: 600;
-      text-align: left;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-      transition: all 0.3s ease;
-    }
-    .supported-link:hover {
-      background: #007BFF;
-      color: white;
-      border-color: #007BFF;
-      transform: translateY(-2px);
-    }
-    #fullscreenLogo {
-      display: none;
-      height: 100vh;
-      width: 100vw;
-      background: white;
-      justify-content: center;
+      font-family: "Segoe UI", sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      flex-direction: column;
       align-items: center;
     }
-    #fullscreenLogo img {
-      max-width: 90%;
-      max-height: 90%;
+
+    .title {
+      font-size: 36px;
+      font-weight: bold;
+      color: #333;
+      margin-top: 60px;
+    }
+
+    .search-box {
+      display: flex;
+      width: 90%;
+      max-width: 600px;
+      margin: 30px auto;
+      border: 2px solid #ccc;
+      border-radius: 50px;
+      overflow: hidden;
+      background: white;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .search-box input {
+      flex: 1;
+      padding: 15px 20px;
+      font-size: 18px;
+      border: none;
+      outline: none;
+    }
+
+    .search-box button {
+      padding: 0 25px;
+      background: #111;
+      color: white;
+      border: none;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .search-box button:hover {
+      background: #444;
+    }
+
+    iframe {
+      width: 95%;
+      height: 70vh;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.2);
+      display: none;
+      margin-top: 20px;
+      background: white;
+    }
+
+    .error-msg {
+      color: red;
+      margin-top: 20px;
+      display: none;
+    }
+
+    .loader-container {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      display: none;
+    }
+
+    .loader-container .loader {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      z-index: 10;
+      width: 160px;
+      height: 100px;
+      margin-left: -80px;
+      margin-top: -50px;
+      border-radius: 5px;
+      background: #1e3f57;
+      animation: dot1_ 3s cubic-bezier(0.55,0.3,0.24,0.99) infinite;
+    }
+
+    .loader-container .loader:nth-child(2) {
+      z-index: 11;
+      width: 150px;
+      height: 90px;
+      margin-top: -45px;
+      margin-left: -75px;
+      border-radius: 3px;
+      background: #3c517d;
+      animation-name: dot2_;
+    }
+
+    .loader-container .loader:nth-child(3) {
+      z-index: 12;
+      width: 40px;
+      height: 20px;
+      margin-top: 50px;
+      margin-left: -20px;
+      border-radius: 0 0 5px 5px;
+      background: #6bb2cd;
+      animation-name: dot3_;
+    }
+
+    @keyframes dot1_ {
+      3%,97% { width: 160px; height: 100px; margin-top: -50px; margin-left: -80px; }
+      30%,36% { width: 80px; height: 120px; margin-top: -60px; margin-left: -40px; }
+      63%,69% { width: 40px; height: 80px; margin-top: -40px; margin-left: -20px; }
+    }
+
+    @keyframes dot2_ {
+      3%,97% { height: 90px; width: 150px; margin-left: -75px; margin-top: -45px; }
+      30%,36% { width: 70px; height: 96px; margin-left: -35px; margin-top: -48px; }
+      63%,69% { width: 32px; height: 60px; margin-left: -16px; margin-top: -30px; }
+    }
+
+    @keyframes dot3_ {
+      3%,97% { height: 20px; width: 40px; margin-left: -20px; margin-top: 50px; }
+      30%,36% { width: 8px; height: 8px; margin-left: -5px; margin-top: 49px; border-radius: 8px; }
+      63%,69% { width: 16px; height: 4px; margin-left: -8px; margin-top: -37px; border-radius: 10px; }
     }
   </style>
 </head>
 <body>
-  <div id="fullscreenLogo">
-    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAclBMVEX..." alt="Logo" />
+
+  <div class="title">TIX PUB</div>
+
+  <div class="search-box">
+    <input id="query" type="text" placeholder="Enter a site or search something..." />
+    <button id="searchBtn">Go</button>
   </div>
 
-  <header>
-    <h1>Game Hub</h1>
-  </header>
+  <div class="error-msg" id="errorMsg">Site may not support IFRAME.</div>
 
-  <div class="container">
-    <div id="searchBar">
-      <input id="input" type="text" placeholder="Search or enter a site..." />
-      <button id="searchBtn">Go</button>
-    </div>
-    <iframe id="iframe" src=""></iframe>
+  <iframe id="resultFrame"></iframe>
 
-    <div class="supported">
-      <h3>Supported Links:</h3>
-      <ul>
-        <li><button class="supported-link" data-query="sz-games.github.io">SZ Games</button> – All games even "Roblox".</li>
-        <li><button class="supported-link" data-query="onlinegames.io">Online Games</button> – All iframe games to search.</li>
-        <li><button class="supported-link" data-query="block blast game">Block Blast</button> – Block puzzle fun.</li>
-      </ul>
-    </div>
+  <!-- Loader -->
+  <div class="loader-container" id="loader">
+    <div class="loader"></div>
+    <div class="loader"></div>
+    <div class="loader"></div>
   </div>
 
   <script>
-    const input = document.getElementById("input");
-    const searchBtn = document.getElementById("searchBtn");
-    const iframe = document.getElementById("iframe");
-    const fullscreenLogo = document.getElementById("fullscreenLogo");
+    const searchBtn = document.getElementById('searchBtn');
+    const input = document.getElementById('query');
+    const iframe = document.getElementById('resultFrame');
+    const loader = document.getElementById('loader');
+    const errorMsg = document.getElementById('errorMsg');
 
-    searchBtn.addEventListener("click", () => {
-      const query = input.value.trim();
-      if (!query) return;
+    const fallbackImage = "data:image/png;base64,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";
 
-      let url;
-      try {
-        // Try as URL first
-        url = new URL(query).href;
-      } catch {
-        // If not a full URL, search
-        url = `https://www.bing.com/search?q=${encodeURIComponent(query)}`;
+    const fallback = document.createElement("div");
+    fallback.style.display = "none";
+    fallback.style.position = "fixed";
+    fallback.style.top = "0";
+    fallback.style.left = "0";
+    fallback.style.width = "100%";
+    fallback.style.height = "100%";
+    fallback.style.background = `#fff url(${fallbackImage}) center/contain no-repeat`;
+    fallback.style.zIndex = "10000";
+    fallback.innerHTML = `<div style="position:absolute;bottom:40px;width:100%;text-align:center;font-size:20px;color:#333;">Site can't be displayed in this browser</div>`;
+    document.body.appendChild(fallback);
+
+    function isDirectURL(query) {
+      return /\.(com|org|net|io|gov|edu|dev|gg|xyz|app|co|tech|github\.io)(\/|$)/i.test(query);
+    }
+
+    function formatURL(query) {
+      if (query.startsWith("http://") || query.startsWith("https://")) {
+        return query;
+      } else if (isDirectURL(query)) {
+        return "https://" + query;
+      } else {
+        return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
       }
+    }
 
-      // Try loading iframe, if blocked show logo instead
-      iframe.src = url;
-      setTimeout(() => {
-        iframe.onload = () => {
-          fullscreenLogo.style.display = "none";
-          iframe.style.display = "block";
-        };
-        iframe.onerror = () => {
-          iframe.style.display = "none";
-          fullscreenLogo.style.display = "flex";
-        };
-      }, 100);
-    });
+    searchBtn.addEventListener('click', () => {
+      const rawQuery = input.value.trim();
+      if (!rawQuery) return;
 
-    document.querySelectorAll('.supported-link').forEach(button => {
-      button.addEventListener('click', () => {
-        input.value = button.dataset.query;
-        searchBtn.click();
-      });
+      const finalURL = formatURL(rawQuery);
+      loader.style.display = 'flex';
+      errorMsg.style.display = 'none';
+      iframe.style.display = 'none';
+      fallback.style.display = 'none';
+
+      iframe.src = finalURL;
+
+      let loadTimeout = setTimeout(() => {
+        loader.style.display = 'none';
+        if (isDirectURL(rawQuery)) {
+          fallback.style.display = 'block';
+        } else {
+          iframe.style.display = 'block';
+        }
+      }, 4000);
+
+      iframe.onload = () => {
+        clearTimeout(loadTimeout);
+        loader.style.display = 'none';
+        try {
+          const content = iframe.contentDocument || iframe.contentWindow.document;
+          if (!content || content.body.innerHTML.trim().length < 10) throw new Error();
+          iframe.style.display = 'block';
+        } catch {
+          if (isDirectURL(rawQuery)) {
+            fallback.style.display = 'block';
+          } else {
+            iframe.style.display = 'block';
+          }
+        }
+      };
     });
   </script>
+
 </body>
 </html>
