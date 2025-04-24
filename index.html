@@ -101,6 +101,8 @@
         <li><button class="supported-link" data-query="https://sz-games.github.io">SZ Games</button> – All games even "Roblox".</li>
         <li><button class="supported-link" data-query="https://onlinegames.io">Online Games</button> – All iframe games to search.</li>
         <li><button class="supported-link" data-query="Block Blast game">Block Blast</button> – Block puzzle fun.</li>
+        <li><button class="supported-link" data-query="https://artclass.site/about.html">artclass</button> – Normal artclass...</li>
+        <li><button class="supported-link" data-query="https://artclass-static.vercel.app/">Art class V2</button> – Artclass V2+.</li>
       </ul>
     </div>
   </div>
@@ -110,7 +112,7 @@
     const searchBtn = document.getElementById("searchBtn");
     const iframe = document.getElementById("iframe");
 
-    const isDirectUrl = str => /\.(com|net|org|io|gov|edu|github\.io)(\/|$)/i.test(str);
+    const isDirectUrl = str => /\.(com|net|org|io|vercel\.app|site|gov|edu|github\.io)(\/|$)/i.test(str);
 
     function handleQuery(query) {
       let trimmed = query.trim();
