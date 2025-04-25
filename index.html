@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Google</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
     body {
       margin: 0;
@@ -53,6 +54,15 @@
       display: block;
       margin-top: 20px;
     }
+    .fullscreen-btn {
+      background: #222;
+      color: white;
+      border: none;
+      cursor: pointer;
+      padding: 10px;
+      margin-top: 10px;
+      display: inline-block;
+    }
     .supported ul {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -80,6 +90,34 @@
       border-color: #007BFF;
       transform: translateY(-2px);
     }
+    .history {
+      margin-top: 30px;
+    }
+    .history ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    .history-item {
+      background: #f1f1f1;
+      padding: 10px;
+      border-radius: 10px;
+      margin: 5px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .delete-btn {
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    .delete-btn:hover {
+      background: darkred;
+    }
   </style>
 </head>
 <body>
@@ -90,7 +128,11 @@
   <div class="container">
     <div id="searchBar">
       <input id="input" type="text" placeholder="Enter a URL or search..." />
-      <button id="searchBtn">Go</button>
+      <button id="searchBtn"><i class="fas fa-search"></i> Go</button>
+    </div>
+
+    <div>
+      <button class="fullscreen-btn" id="fullscreenBtn"><i class="fas fa-expand"></i> Fullscreen</button>
     </div>
 
     <iframe id="iframe" src=""></iframe>
@@ -98,12 +140,17 @@
     <div class="supported">
       <h3>Supported Links:</h3>
       <ul>
-        <li><button class="supported-link" data-query="https://sz-games.github.io">SZ Games</button> – All games even "Roblox".</li>
-        <li><button class="supported-link" data-query="https://onlinegames.io">Online Games</button> – All iframe games to search.</li>
-        <li><button class="supported-link" data-query="Block Blast game">Block Blast</button> – Block puzzle fun.</li>
-        <li><button class="supported-link" data-query="mathgames66.github.io">Math Games</button> – Math games revamped...</li>
-        <li><button class="supported-link" data-query="https://artclass-static.vercel.app/">Art class V2</button> – Artclass V2+.</li>
+        <li><button class="supported-link" data-query="https://sz-games.github.io"><i class="fas fa-gamepad"></i> SZ Games</button> – All games even "Roblox".</li>
+        <li><button class="supported-link" data-query="https://onlinegames.io"><i class="fas fa-globe"></i> Online Games</button> – All iframe games to search.</li>
+        <li><button class="supported-link" data-query="Block Blast game"><i class="fas fa-cube"></i> Block Blast</button> – Block puzzle fun.</li>
+        <li><button class="supported-link" data-query="mathgames66.github.io"><i class="fas fa-calculator"></i> Math Games</button> – Math games revamped...</li>
+        <li><button class="supported-link" data-query="https://artclass-static.vercel.app/"><i class="fas fa-paint-brush"></i> Art class V2</button> – Artclass V2+.</li>
       </ul>
+    </div>
+
+    <div class="history">
+      <h3>Search History:</h3>
+      <ul id="historyList"></ul>
     </div>
   </div>
 
@@ -111,6 +158,8 @@
     const input = document.getElementById("input");
     const searchBtn = document.getElementById("searchBtn");
     const iframe = document.getElementById("iframe");
+    const fullscreenBtn = document.getElementById("fullscreenBtn");
+    const historyList = document.getElementById("historyList");
 
     const isDirectUrl = str => /\.(com|net|org|io|vercel\.app|site|gov|edu|github\.io)(\/|$)/i.test(str);
 
@@ -131,7 +180,55 @@
       }
 
       iframe.src = url;
+
+      // Save to history
+      let history = JSON.parse(localStorage.getItem('history')) || [];
+      if (!history.includes(trimmed)) {
+        history.push(trimmed);
+        localStorage.setItem('history', JSON.stringify(history));
+        renderHistory();
+      }
     }
+
+    function renderHistory() {
+      let history = JSON.parse(localStorage.getItem('history')) || [];
+      historyList.innerHTML = '';
+      history.forEach((item, index) => {
+        const li = document.createElement('li');
+        li.classList.add('history-item');
+        li.innerHTML = `
+          <span>${item}</span>
+          <button class="delete-btn" data-index="${index}"><i class="fas fa-trash"></i></button>
+        `;
+        historyList.appendChild(li);
+      });
+
+      // Add event listeners to delete buttons
+      document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+          const index = e.target.dataset.index;
+          deleteHistoryItem(index);
+        });
+      });
+    }
+
+    function deleteHistoryItem(index) {
+      let history = JSON.parse(localStorage.getItem('history')) || [];
+      history.splice(index, 1);
+      localStorage.setItem('history', JSON.stringify(history));
+      renderHistory();
+    }
+
+    // Fullscreen toggle
+    fullscreenBtn.addEventListener('click', () => {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+        fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i> Fullscreen';
+      } else {
+        iframe.requestFullscreen();
+        fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i> Exit Fullscreen';
+      }
+    });
 
     searchBtn.addEventListener("click", () => {
       handleQuery(input.value);
@@ -143,6 +240,9 @@
         handleQuery(button.dataset.query);
       });
     });
+
+    // Render history on page load
+    renderHistory();
   </script>
 </body>
 </html>
