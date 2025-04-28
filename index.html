@@ -161,7 +161,7 @@
     const fullscreenBtn = document.getElementById("fullscreenBtn");
     const historyList = document.getElementById("historyList");
 
-    const isDirectUrl = str => /\.(com|net|org|io|vercel\.app|site|gov|edu|github\.io)(\/|$)/i.test(str);
+    const isDirectUrl = str => /\.(com|net|org|io|vercel\.app|vercel\.ai|site|gov|edu|github\.io)(\/|$)/i.test(str);
 
     function handleQuery(query) {
       let trimmed = query.trim();
