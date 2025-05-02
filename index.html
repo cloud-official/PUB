@@ -6,7 +6,6 @@
   <title>Google</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-    /* Existing styles */
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
@@ -91,53 +90,33 @@
       border-color: #007BFF;
       transform: translateY(-2px);
     }
-    /* Loader styles from Uiverse.io by Erasmus001 */
-    #wifi-loader {
-      --background: #62abff;
-      --front-color: #000;
-      --back-color: #c3c8de;
-      --text-color: #414856;
-      width: 64px;
-      height: 64px;
-      border-radius: 50px;
-      position: relative;
-      display: none; /* Initially hidden */
-      justify-content: center;
-      align-items: center;
+    .history {
+      margin-top: 30px;
     }
-
-    #wifi-loader svg {
-      position: absolute;
+    .history ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    .history-item {
+      background: #f1f1f1;
+      padding: 10px;
+      border-radius: 10px;
+      margin: 5px 0;
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
-
-    #wifi-loader svg circle {
-      position: absolute;
-      fill: none;
-      stroke-width: 6px;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      transform: rotate(-100deg);
-      transform-origin: center;
+    .delete-btn {
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      padding: 5px 10px;
+      cursor: pointer;
     }
-
-    #wifi-loader svg circle.back {
-      stroke: var(--back-color);
-    }
-
-    #wifi-loader svg circle.front {
-      stroke: var(--front-color);
-    }
-
-    #wifi-loader .text {
-      position: absolute;
-      bottom: -40px;
-      text-transform: lowercase;
-      font-weight: 500;
-      font-size: 14px;
-      color: var(--front-color);
+    .delete-btn:hover {
+      background: darkred;
     }
   </style>
 </head>
@@ -152,13 +131,8 @@
       <button id="searchBtn"><i class="fas fa-search"></i> Go</button>
     </div>
 
-    <!-- Loader -->
-    <div id="wifi-loader">
-      <svg viewBox="0 0 86 86" class="circle-outer">
-        <circle r="40" cy="43" cx="43" class="back"></circle>
-        <circle r="40" cy="43" cx="43" class="front"></circle>
-      </svg>
-      <div class="text">Searching...</div>
+    <div>
+      <button class="fullscreen-btn" id="fullscreenBtn"><i class="fas fa-expand"></i> Fullscreen</button>
     </div>
 
     <iframe id="iframe" src=""></iframe>
@@ -174,38 +148,102 @@
         <li><button class="supported-link" data-query="chat.vercel.ai"><i class="fas fa-paint-brush"></i>AI</button> – AI chat.</li>
       </ul>
     </div>
+
+    <div class="history">
+      <h3>Search History:</h3>
+      <ul id="historyList"></ul>
+    </div>
   </div>
 
   <script>
     const input = document.getElementById("input");
     const searchBtn = document.getElementById("searchBtn");
     const iframe = document.getElementById("iframe");
-    const loader = document.getElementById("wifi-loader");
+    const fullscreenBtn = document.getElementById("fullscreenBtn");
+    const historyList = document.getElementById("historyList");
+
+    const isDirectUrl = str => /\.(com|net|org|io|vercel\.app|vercel\.ai|site|gov|edu|github\.io)(\/|$)/i.test(str);
 
     function handleQuery(query) {
       let trimmed = query.trim();
       if (!trimmed) return;
 
       let url;
-      if (/^(https?:\/\/.+)$/i.test(trimmed)) {
+      if (isDirectUrl(trimmed)) {
+        // Add https:// if missing
+        if (!/^https?:\/\//i.test(trimmed)) {
+          trimmed = "https://" + trimmed;
+        }
         url = trimmed;
       } else {
+        // Bing search if not a direct domain
         url = `https://www.bing.com/search?q=${encodeURIComponent(trimmed)}`;
       }
 
-      // Show loader
-      loader.style.display = 'flex';
+      iframe.src = url;
 
-      // Simulate a short delay for the loader
-      setTimeout(() => {
-        iframe.src = url;
-        loader.style.display = 'none';
-      }, 1500); // Adjust time as needed
+      // Save to history
+      let history = JSON.parse(localStorage.getItem('history')) || [];
+      if (!history.includes(trimmed)) {
+        history.push(trimmed);
+        localStorage.setItem('history', JSON.stringify(history));
+        renderHistory();
+      }
     }
+
+    function renderHistory() {
+      let history = JSON.parse(localStorage.getItem('history')) || [];
+      historyList.innerHTML = '';
+      history.forEach((item, index) => {
+        const li = document.createElement('li');
+        li.classList.add('history-item');
+        li.innerHTML = `
+          <span>${item}</span>
+          <button class="delete-btn" data-index="${index}"><i class="fas fa-trash"></i></button>
+        `;
+        historyList.appendChild(li);
+      });
+
+      // Add event listeners to delete buttons
+      document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+          const index = e.target.dataset.index;
+          deleteHistoryItem(index);
+        });
+      });
+    }
+
+    function deleteHistoryItem(index) {
+      let history = JSON.parse(localStorage.getItem('history')) || [];
+      history.splice(index, 1);
+      localStorage.setItem('history', JSON.stringify(history));
+      renderHistory();
+    }
+
+    // Fullscreen toggle
+    fullscreenBtn.addEventListener('click', () => {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+        fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i> Fullscreen';
+      } else {
+        iframe.requestFullscreen();
+        fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i> Exit Fullscreen';
+      }
+    });
 
     searchBtn.addEventListener("click", () => {
       handleQuery(input.value);
     });
+
+    document.querySelectorAll(".supported-link").forEach(button => {
+      button.addEventListener("click", () => {
+        input.value = button.dataset.query;
+        handleQuery(button.dataset.query);
+      });
+    });
+
+    // Render history on page load
+    renderHistory();
   </script>
 </body>
 </html>
