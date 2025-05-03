@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Google</title>
+  <title>Tixu Cloud PUB</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
     * {
@@ -45,7 +45,6 @@
       border: 2px solid #33ff33;
       background-color: #1a1a1a;
       color: #33ff33;
-      font-family: "Courier New", Courier, monospace;
       font-size: 1.5rem;
       padding: 2em;
       text-align: center;
@@ -112,7 +111,7 @@
       border: none;
       border-radius: 0;
       display: none;
-      position: absolute;
+      position: fixed;
       top: 0;
       left: 0;
       z-index: 999;
@@ -154,6 +153,26 @@
       border: none;
       cursor: pointer;
     }
+
+    #exitIframe {
+      position: fixed;
+      top: 15px;
+      right: 20px;
+      z-index: 1001;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: #33ff33;
+      border: 2px solid #33ff33;
+      padding: 8px 12px;
+      font-size: 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      display: none;
+    }
+
+    #exitIframe:hover {
+      background-color: #33ff33;
+      color: #000;
+    }
   </style>
 </head>
 <body>
@@ -171,6 +190,7 @@
     <div id="iframePlaceholder">Select or enter a site to start browsing...</div>
 
     <iframe id="iframe" sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer"></iframe>
+    <button id="exitIframe">Exit</button>
 
     <div class="recommended-websites">
       <h3>websites | 290 games</h3>
@@ -193,6 +213,7 @@
     const input = document.getElementById("input");
     const searchBtn = document.getElementById("searchBtn");
     const iframe = document.getElementById("iframe");
+    const exitBtn = document.getElementById("exitIframe");
     const terminalLoader = document.getElementById("terminalLoader");
     const terminalText = document.getElementById("terminalText");
     const iframePlaceholder = document.getElementById("iframePlaceholder");
@@ -203,12 +224,14 @@
       terminalText.innerHTML = "";
       iframePlaceholder.style.display = "none";
       iframe.style.display = "none";
+      exitBtn.style.display = "none";
       iframe.src = url;
 
       typeWriter("Connecting...", terminalText, () => {
         iframe.onload = () => {
           terminalLoader.style.display = "none";
           iframe.style.display = "block";
+          exitBtn.style.display = "block";
           document.body.classList.remove("loading");
         };
       });
@@ -242,14 +265,20 @@
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    // Skip loader
     document.getElementById("skipLoader").addEventListener("click", () => {
       terminalLoader.style.display = "none";
       iframe.style.display = "block";
+      exitBtn.style.display = "block";
       document.body.classList.remove("loading");
     });
 
-    // Enter key triggers search
+    exitBtn.addEventListener("click", () => {
+      iframe.src = "";
+      iframe.style.display = "none";
+      exitBtn.style.display = "none";
+      iframePlaceholder.style.display = "block";
+    });
+
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         handleQuery(input.value);
@@ -260,9 +289,7 @@
       handleQuery(input.value);
     });
 
-    window.onload = () => {
-      handleQuery('https://ball-bang.github.io', 'Ball Bang Game');
-    };
+    // Removed auto-load of Ball Bang Game
   </script>
 </body>
 </html>
