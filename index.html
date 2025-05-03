@@ -6,123 +6,140 @@
   <title>Google</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-    body {
+    /* General reset */
+    * {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #f9f9f9;
-      color: #333;
+      padding: 0;
+      box-sizing: border-box;
     }
-    header {
-      background: #222;
-      color: white;
-      padding: 20px;
+
+    /* Body Styles */
+    body {
+      font-family: 'Courier New', Courier, monospace;
+      background-color: #1a1a1a;
+      color: #33ff33;
       text-align: center;
+      padding: 50px 10px;
     }
-    .container {
-      max-width: 900px;
-      margin: 40px auto;
-      padding: 20px;
-      background: white;
-      border-radius: 15px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-    }
-    #searchBar {
-      display: flex;
+
+    header {
+      font-size: 2rem;
       margin-bottom: 20px;
     }
-    #input {
-      flex: 1;
-      padding: 10px;
-      font-size: 16px;
-      border: 2px solid #ccc;
-      border-radius: 10px 0 0 10px;
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 20px;
+      background-color: #333;
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     }
+
+    /* Terminal Loader */
+    .terminal-loader {
+      width: 60%;
+      margin: 0 auto;
+      border: 2px solid #33ff33;
+      background-color: #1a1a1a;
+      color: #33ff33;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 1.5rem;
+      padding: 2em;
+      text-align: center;
+      border-radius: 10px;
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .terminal-header {
+      font-size: 1.2rem;
+      margin-bottom: 1em;
+    }
+
+    .text {
+      white-space: nowrap;
+      overflow: hidden;
+      display: inline-block;
+      border-right: 2px solid #33ff33; /* cursor effect */
+      animation: typing 4s steps(12) infinite, blink 0.75s step-end infinite;
+    }
+
+    @keyframes typing {
+      from { width: 0; }
+      to { width: 10em; }
+    }
+
+    @keyframes blink {
+      50% { border-right-color: transparent; }
+    }
+
+    /* Input section styling */
+    #input {
+      padding: 10px;
+      font-size: 1.2rem;
+      width: 100%;
+      border: 2px solid #33ff33;
+      background-color: #1a1a1a;
+      color: #33ff33;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+
     #searchBtn {
       padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      background: #007BFF;
-      color: white;
-      border-radius: 0 10px 10px 0;
+      font-size: 1.2rem;
+      border: 2px solid #33ff33;
+      background-color: #333;
+      color: #33ff33;
+      border-radius: 5px;
       cursor: pointer;
     }
+
+    #searchBtn:hover {
+      background-color: #33ff33;
+      color: #1a1a1a;
+    }
+
     iframe {
       width: 100%;
       height: 500px;
-      border: none;
+      border: 2px solid #33ff33;
       border-radius: 10px;
-      display: block;
       margin-top: 20px;
+      background-color: black;
     }
-    .fullscreen-btn {
-      background: #222;
-      color: white;
-      border: none;
-      cursor: pointer;
-      padding: 10px;
-      margin-top: 10px;
-      display: inline-block;
-    }
-    .supported ul {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 15px;
-      padding: 0;
+
+    /* Recommended Websites */
+    .recommended-websites ul {
       list-style: none;
-      margin-top: 20px;
-    }
-    .supported-link {
-      width: 100%;
-      background: #fff;
-      border: 2px solid #ddd;
-      border-radius: 15px;
-      padding: 15px 20px;
-      font-size: 16px;
-      font-weight: 600;
-      text-align: left;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-      transition: all 0.3s ease;
-    }
-    .supported-link:hover {
-      background: #007BFF;
-      color: white;
-      border-color: #007BFF;
-      transform: translateY(-2px);
-    }
-    .history {
-      margin-top: 30px;
-    }
-    .history ul {
-      list-style-type: none;
       padding: 0;
+      margin: 20px 0;
     }
-    .history-item {
-      background: #f1f1f1;
+
+    .recommended-websites li {
+      background-color: #333;
+      color: #33ff33;
       padding: 10px;
-      border-radius: 10px;
+      border-radius: 5px;
       margin: 5px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-    .delete-btn {
-      background: red;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      padding: 5px 10px;
       cursor: pointer;
     }
-    .delete-btn:hover {
-      background: darkred;
+
+    .recommended-websites li:hover {
+      background-color: #33ff33;
+      color: #1a1a1a;
     }
+
   </style>
 </head>
 <body>
   <header>
     <h1>Tixu Cloud PUB</h1>
+    <p>welcome thank you for visting</p>.</p>
   </header>
 
   <div class="container">
@@ -131,27 +148,21 @@
       <button id="searchBtn"><i class="fas fa-search"></i> Go</button>
     </div>
 
-    <div>
-      <button class="fullscreen-btn" id="fullscreenBtn"><i class="fas fa-expand"></i> Fullscreen</button>
+    <div class="terminal-loader" id="terminalLoader">
+      <div class="terminal-header">Status</div>
+      <div class="text" id="terminalText">Connecting...</div>
     </div>
 
     <iframe id="iframe" src=""></iframe>
 
-    <div class="supported">
-      <h3>Supported Links:</h3>
+    <div class="recommended-websites">
+      <h3>websites | 290 games</h3>
       <ul>
-        <li><button class="supported-link" data-query="https://sz-games.github.io"><i class="fas fa-gamepad"></i> SZ Games</button> – All games even "Roblox".</li>
-        <li><button class="supported-link" data-query="https://onlinegames.io"><i class="fas fa-globe"></i> Online Games</button> – All iframe games to search.</li>
-        <li><button class="supported-link" data-query="Block Blast game"><i class="fas fa-cube"></i> Block Blast</button> – Block puzzle fun.</li>
-        <li><button class="supported-link" data-query="mathgames66.github.io"><i class="fas fa-calculator"></i> Math Games</button> – Math games revamped...</li>
-        <li><button class="supported-link" data-query="https://artclass-static.vercel.app/"><i class="fas fa-paint-brush"></i> Art class V2</button> – Artclass V2+.</li>
-        <li><button class="supported-link" data-query="chat.vercel.ai"><i class="fas fa-paint-brush"></i>AI</button> – AI chat.</li>
+        <li onclick="handleQuery('https://ball-bang.github.io', 'Ball Bang Game')">Ball Bang Game</li>
+        <li onclick="handleQuery('https://3kh0s.github.io/games/', '3kh0s')">3kh0s games</li>
+        <li onclick="handleQuery('https://githubgames.com/', 'GitHub Poki')">GitHub games</li>
+        <li onclick="handleQuery('https://ug17.github.io/Games.html')">ug17 games</li>
       </ul>
-    </div>
-
-    <div class="history">
-      <h3>Search History:</h3>
-      <ul id="historyList"></ul>
     </div>
   </div>
 
@@ -159,91 +170,66 @@
     const input = document.getElementById("input");
     const searchBtn = document.getElementById("searchBtn");
     const iframe = document.getElementById("iframe");
-    const fullscreenBtn = document.getElementById("fullscreenBtn");
-    const historyList = document.getElementById("historyList");
+    const terminalLoader = document.getElementById("terminalLoader");
+    const terminalText = document.getElementById("terminalText");
+    const recommendedWebsites = document.querySelector(".recommended-websites");
+    const container = document.querySelector(".container");
 
-    const isDirectUrl = str => /\.(com|net|org|io|vercel\.app|vercel\.ai|site|gov|edu|github\.io)(\/|$)/i.test(str);
-
-    function handleQuery(query) {
-      let trimmed = query.trim();
-      if (!trimmed) return;
-
-      let url;
-      if (isDirectUrl(trimmed)) {
-        // Add https:// if missing
-        if (!/^https?:\/\//i.test(trimmed)) {
-          trimmed = "https://" + trimmed;
-        }
-        url = trimmed;
-      } else {
-        // Bing search if not a direct domain
-        url = `https://www.bing.com/search?q=${encodeURIComponent(trimmed)}`;
-      }
-
+    // Handle search query
+    function handleQuery(url, title) {
+      terminalLoader.style.display = "block";
+      terminalText.innerHTML = ""; // Clear previous text
       iframe.src = url;
+      typeWriter("Connecting...", terminalText, () => {
+        iframe.onload = () => {
+          terminalLoader.style.display = "none";
+        };
+      });
+    }
 
-      // Save to history
-      let history = JSON.parse(localStorage.getItem('history')) || [];
-      if (!history.includes(trimmed)) {
-        history.push(trimmed);
-        localStorage.setItem('history', JSON.stringify(history));
-        renderHistory();
+    // Typewriter effect for terminal text
+    function typeWriter(text, element, callback) {
+      let i = 0;
+      let speed = 100;
+      function type() {
+        if (i < text.length) {
+          element.innerHTML += text.charAt(i);
+          i++;
+          setTimeout(type, speed);
+        } else {
+          callback();
+        }
       }
+      type();
     }
 
-    function renderHistory() {
-      let history = JSON.parse(localStorage.getItem('history')) || [];
-      historyList.innerHTML = '';
-      history.forEach((item, index) => {
-        const li = document.createElement('li');
-        li.classList.add('history-item');
-        li.innerHTML = `
-          <span>${item}</span>
-          <button class="delete-btn" data-index="${index}"><i class="fas fa-trash"></i></button>
-        `;
-        historyList.appendChild(li);
-      });
+    // Page Visibility API
+    let timeoutID;
 
-      // Add event listeners to delete buttons
-      document.querySelectorAll('.delete-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-          const index = e.target.dataset.index;
-          deleteHistoryItem(index);
-        });
-      });
-    }
-
-    function deleteHistoryItem(index) {
-      let history = JSON.parse(localStorage.getItem('history')) || [];
-      history.splice(index, 1);
-      localStorage.setItem('history', JSON.stringify(history));
-      renderHistory();
-    }
-
-    // Fullscreen toggle
-    fullscreenBtn.addEventListener('click', () => {
-      if (document.fullscreenElement) {
-        document.exitFullscreen();
-        fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i> Fullscreen';
+    function handleVisibilityChange() {
+      if (document.hidden) {
+        // Tab is inactive - hide everything
+        container.style.display = "none";
       } else {
-        iframe.requestFullscreen();
-        fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i> Exit Fullscreen';
+        // Tab is active - show content after 3 seconds
+        timeoutID = setTimeout(() => {
+          container.style.display = "block";
+        }, 3000);
       }
-    });
+    }
 
+    // Listen to visibility change event
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Initialize history rendering on page load
+    window.onload = () => {
+      handleQuery('https://ball-bang.github.io', 'Ball Bang Game');
+    };
+
+    // Event listeners
     searchBtn.addEventListener("click", () => {
       handleQuery(input.value);
     });
-
-    document.querySelectorAll(".supported-link").forEach(button => {
-      button.addEventListener("click", () => {
-        input.value = button.dataset.query;
-        handleQuery(button.dataset.query);
-      });
-    });
-
-    // Render history on page load
-    renderHistory();
   </script>
 </body>
 </html>
