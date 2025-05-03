@@ -6,14 +6,12 @@
   <title>Google</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-    /* General reset */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
 
-    /* Body Styles */
     body {
       font-family: 'Courier New', Courier, monospace;
       background-color: #1a1a1a;
@@ -36,7 +34,11 @@
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     }
 
-    /* Terminal Loader */
+    body.loading header,
+    body.loading .container {
+      display: none;
+    }
+
     .terminal-loader {
       width: 60%;
       margin: 0 auto;
@@ -53,6 +55,7 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
+      z-index: 1000;
     }
 
     .terminal-header {
@@ -64,7 +67,7 @@
       white-space: nowrap;
       overflow: hidden;
       display: inline-block;
-      border-right: 2px solid #33ff33; /* cursor effect */
+      border-right: 2px solid #33ff33;
       animation: typing 4s steps(12) infinite, blink 0.75s step-end infinite;
     }
 
@@ -77,7 +80,6 @@
       50% { border-right-color: transparent; }
     }
 
-    /* Input section styling */
     #input {
       padding: 10px;
       font-size: 1.2rem;
@@ -105,15 +107,23 @@
     }
 
     iframe {
-      width: 100%;
-      height: 500px;
-      border: 2px solid #33ff33;
-      border-radius: 10px;
-      margin-top: 20px;
+      width: 100vw;
+      height: 100vh;
+      border: none;
+      border-radius: 0;
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 999;
       background-color: black;
     }
 
-    /* Recommended Websites */
+    #iframePlaceholder {
+      color: #777;
+      margin-top: 20px;
+    }
+
     .recommended-websites ul {
       list-style: none;
       padding: 0;
@@ -134,12 +144,22 @@
       color: #1a1a1a;
     }
 
+    #skipLoader {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      background: none;
+      color: #33ff33;
+      font-size: 1.5rem;
+      border: none;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <header>
     <h1>Tixu Cloud PUB</h1>
-    <p>welcome thank you for visting</p>.</p>
+    <p>Welcome! Thank you for visiting.</p>
   </header>
 
   <div class="container">
@@ -148,12 +168,9 @@
       <button id="searchBtn"><i class="fas fa-search"></i> Go</button>
     </div>
 
-    <div class="terminal-loader" id="terminalLoader">
-      <div class="terminal-header">Status</div>
-      <div class="text" id="terminalText">Connecting...</div>
-    </div>
+    <div id="iframePlaceholder">Select or enter a site to start browsing...</div>
 
-    <iframe id="iframe" src=""></iframe>
+    <iframe id="iframe" sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer"></iframe>
 
     <div class="recommended-websites">
       <h3>websites | 290 games</h3>
@@ -166,28 +183,37 @@
     </div>
   </div>
 
+  <div class="terminal-loader" id="terminalLoader">
+    <button id="skipLoader">✖</button>
+    <div class="terminal-header">Status</div>
+    <div class="text" id="terminalText">Connecting...</div>
+  </div>
+
   <script>
     const input = document.getElementById("input");
     const searchBtn = document.getElementById("searchBtn");
     const iframe = document.getElementById("iframe");
     const terminalLoader = document.getElementById("terminalLoader");
     const terminalText = document.getElementById("terminalText");
-    const recommendedWebsites = document.querySelector(".recommended-websites");
-    const container = document.querySelector(".container");
+    const iframePlaceholder = document.getElementById("iframePlaceholder");
 
-    // Handle search query
     function handleQuery(url, title) {
+      document.body.classList.add("loading");
       terminalLoader.style.display = "block";
-      terminalText.innerHTML = ""; // Clear previous text
+      terminalText.innerHTML = "";
+      iframePlaceholder.style.display = "none";
+      iframe.style.display = "none";
       iframe.src = url;
+
       typeWriter("Connecting...", terminalText, () => {
         iframe.onload = () => {
           terminalLoader.style.display = "none";
+          iframe.style.display = "block";
+          document.body.classList.remove("loading");
         };
       });
     }
 
-    // Typewriter effect for terminal text
     function typeWriter(text, element, callback) {
       let i = 0;
       let speed = 100;
@@ -203,33 +229,40 @@
       type();
     }
 
-    // Page Visibility API
     let timeoutID;
-
     function handleVisibilityChange() {
       if (document.hidden) {
-        // Tab is inactive - hide everything
-        container.style.display = "none";
+        document.querySelector(".container").style.display = "none";
       } else {
-        // Tab is active - show content after 3 seconds
         timeoutID = setTimeout(() => {
-          container.style.display = "block";
-        }, 3000);
+          document.querySelector(".container").style.display = "block";
+        }, 5000); // 5-second delay
       }
     }
 
-    // Listen to visibility change event
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    // Initialize history rendering on page load
-    window.onload = () => {
-      handleQuery('https://ball-bang.github.io', 'Ball Bang Game');
-    };
+    // Skip loader
+    document.getElementById("skipLoader").addEventListener("click", () => {
+      terminalLoader.style.display = "none";
+      iframe.style.display = "block";
+      document.body.classList.remove("loading");
+    });
 
-    // Event listeners
+    // Enter key triggers search
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        handleQuery(input.value);
+      }
+    });
+
     searchBtn.addEventListener("click", () => {
       handleQuery(input.value);
     });
+
+    window.onload = () => {
+      handleQuery('https://ball-bang.github.io', 'Ball Bang Game');
+    };
   </script>
 </body>
 </html>
