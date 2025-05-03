@@ -18,6 +18,7 @@
       color: #33ff33;
       text-align: center;
       padding: 50px 10px;
+      overflow: hidden;
     }
 
     header {
@@ -32,11 +33,6 @@
       background-color: #333;
       border-radius: 15px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    }
-
-    body.loading header,
-    body.loading .container {
-      display: none;
     }
 
     .terminal-loader {
@@ -108,19 +104,44 @@
     iframe {
       width: 100vw;
       height: 100vh;
-      border: none;
-      border-radius: 0;
-      display: none;
       position: fixed;
       top: 0;
       left: 0;
-      z-index: 999;
-      background-color: black;
+      border: none;
+      display: none;
+      z-index: 998;
+      background-color: #000;
     }
 
-    #iframePlaceholder {
-      color: #777;
-      margin-top: 20px;
+    #exitIframe {
+      position: fixed;
+      top: 10px;
+      right: 20px;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: #33ff33;
+      border: 2px solid #33ff33;
+      padding: 8px 12px;
+      font-size: 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      display: none;
+      z-index: 1001;
+    }
+
+    #exitIframe:hover {
+      background-color: #33ff33;
+      color: #000;
+    }
+
+    #skipLoader {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      background: none;
+      color: #33ff33;
+      font-size: 1.5rem;
+      border: none;
+      cursor: pointer;
     }
 
     .recommended-websites ul {
@@ -142,37 +163,6 @@
       background-color: #33ff33;
       color: #1a1a1a;
     }
-
-    #skipLoader {
-      position: absolute;
-      top: 10px;
-      right: 20px;
-      background: none;
-      color: #33ff33;
-      font-size: 1.5rem;
-      border: none;
-      cursor: pointer;
-    }
-
-    #exitIframe {
-      position: fixed;
-      top: 15px;
-      right: 20px;
-      z-index: 1001;
-      background-color: rgba(0, 0, 0, 0.7);
-      color: #33ff33;
-      border: 2px solid #33ff33;
-      padding: 8px 12px;
-      font-size: 1rem;
-      border-radius: 5px;
-      cursor: pointer;
-      display: none;
-    }
-
-    #exitIframe:hover {
-      background-color: #33ff33;
-      color: #000;
-    }
   </style>
 </head>
 <body>
@@ -187,17 +177,12 @@
       <button id="searchBtn"><i class="fas fa-search"></i> Go</button>
     </div>
 
-    <div id="iframePlaceholder">Select or enter a site to start browsing...</div>
-
-    <iframe id="iframe" sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer"></iframe>
-    <button id="exitIframe">Exit</button>
-
     <div class="recommended-websites">
       <h3>websites | 290 games</h3>
       <ul>
-        <li onclick="handleQuery('https://ball-bang.github.io', 'Ball Bang Game')">Ball Bang Game</li>
-        <li onclick="handleQuery('https://3kh0s.github.io/games/', '3kh0s')">3kh0s games</li>
-        <li onclick="handleQuery('https://githubgames.com/', 'GitHub Poki')">GitHub games</li>
+        <li onclick="handleQuery('https://ball-bang.github.io')">Ball Bang Game</li>
+        <li onclick="handleQuery('https://3kh0s.github.io/games/')">3kh0s games</li>
+        <li onclick="handleQuery('https://githubgames.com/')">GitHub games</li>
         <li onclick="handleQuery('https://ug17.github.io/Games.html')">ug17 games</li>
       </ul>
     </div>
@@ -209,6 +194,9 @@
     <div class="text" id="terminalText">Connecting...</div>
   </div>
 
+  <iframe id="iframe"></iframe>
+  <button id="exitIframe">Exit</button>
+
   <script>
     const input = document.getElementById("input");
     const searchBtn = document.getElementById("searchBtn");
@@ -216,23 +204,20 @@
     const exitBtn = document.getElementById("exitIframe");
     const terminalLoader = document.getElementById("terminalLoader");
     const terminalText = document.getElementById("terminalText");
-    const iframePlaceholder = document.getElementById("iframePlaceholder");
+    const skipLoader = document.getElementById("skipLoader");
 
-    function handleQuery(url, title) {
-      document.body.classList.add("loading");
-      terminalLoader.style.display = "block";
+    function handleQuery(url) {
+      showLoader();
       terminalText.innerHTML = "";
-      iframePlaceholder.style.display = "none";
       iframe.style.display = "none";
       exitBtn.style.display = "none";
       iframe.src = url;
 
       typeWriter("Connecting...", terminalText, () => {
         iframe.onload = () => {
-          terminalLoader.style.display = "none";
+          hideLoader();
           iframe.style.display = "block";
           exitBtn.style.display = "block";
-          document.body.classList.remove("loading");
         };
       });
     }
@@ -252,44 +237,45 @@
       type();
     }
 
-    let timeoutID;
-    function handleVisibilityChange() {
-      if (document.hidden) {
-        document.querySelector(".container").style.display = "none";
-      } else {
-        timeoutID = setTimeout(() => {
-          document.querySelector(".container").style.display = "block";
-        }, 5000); // 5-second delay
-      }
+    function showLoader() {
+      terminalLoader.style.display = "block";
     }
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    document.getElementById("skipLoader").addEventListener("click", () => {
+    function hideLoader() {
       terminalLoader.style.display = "none";
+    }
+
+    skipLoader.addEventListener("click", () => {
+      hideLoader();
       iframe.style.display = "block";
       exitBtn.style.display = "block";
-      document.body.classList.remove("loading");
     });
 
     exitBtn.addEventListener("click", () => {
-      iframe.src = "";
       iframe.style.display = "none";
       exitBtn.style.display = "none";
-      iframePlaceholder.style.display = "block";
+      setTimeout(() => {
+        iframe.src = ""; // Avoid flash of black content
+      }, 500);
     });
 
     input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        handleQuery(input.value);
-      }
+      if (e.key === "Enter") handleQuery(input.value);
     });
 
     searchBtn.addEventListener("click", () => {
       handleQuery(input.value);
     });
 
-    // Removed auto-load of Ball Bang Game
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) {
+        setTimeout(() => {
+          document.querySelector(".container").style.display = "block";
+        }, 5000);
+      } else {
+        document.querySelector(".container").style.display = "none";
+      }
+    });
   </script>
 </body>
 </html>
