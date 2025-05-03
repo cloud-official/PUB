@@ -102,15 +102,13 @@
     }
 
     iframe {
-      width: 100vw;
-      height: 100vh;
-      position: fixed;
-      top: 0;
-      left: 0;
-      border: none;
-      display: none;
-      z-index: 998;
-      background-color: #000;
+      width: 100%;
+      height: 500px;
+      border: 2px solid #33ff33;
+      border-radius: 10px;
+      margin-top: 20px;
+      background-color: black;
+      display: none; /* hidden by default */
     }
 
     #exitIframe {
@@ -131,17 +129,6 @@
     #exitIframe:hover {
       background-color: #33ff33;
       color: #000;
-    }
-
-    #skipLoader {
-      position: absolute;
-      top: 10px;
-      right: 20px;
-      background: none;
-      color: #33ff33;
-      font-size: 1.5rem;
-      border: none;
-      cursor: pointer;
     }
 
     .recommended-websites ul {
@@ -189,13 +176,12 @@
   </div>
 
   <div class="terminal-loader" id="terminalLoader">
-    <button id="skipLoader">✖</button>
     <div class="terminal-header">Status</div>
     <div class="text" id="terminalText">Connecting...</div>
   </div>
 
   <iframe id="iframe"></iframe>
-  <button id="exitIframe">Exit</button>
+  <button id="exitIframe">Exit Fullscreen</button>
 
   <script>
     const input = document.getElementById("input");
@@ -204,24 +190,36 @@
     const exitBtn = document.getElementById("exitIframe");
     const terminalLoader = document.getElementById("terminalLoader");
     const terminalText = document.getElementById("terminalText");
-    const skipLoader = document.getElementById("skipLoader");
 
+    // Handle search query
     function handleQuery(url) {
       showLoader();
       terminalText.innerHTML = "";
-      iframe.style.display = "none";
-      exitBtn.style.display = "none";
-      iframe.src = url;
+      iframe.style.display = "none"; // Hide iframe by default
+      exitBtn.style.display = "none"; // Hide fullscreen exit button
 
       typeWriter("Connecting...", terminalText, () => {
+        iframe.src = url;
         iframe.onload = () => {
           hideLoader();
           iframe.style.display = "block";
           exitBtn.style.display = "block";
+          askFullscreen();
         };
       });
     }
 
+    // Ask user if they want to go fullscreen
+    function askFullscreen() {
+      const userConfirmed = confirm("Do you want to view this page in fullscreen?");
+      if (userConfirmed) {
+        iframe.style.width = "100vw";
+        iframe.style.height = "100vh";
+        iframe.style.border = "none";
+      }
+    }
+
+    // Typewriter effect for terminal text
     function typeWriter(text, element, callback) {
       let i = 0;
       let speed = 100;
@@ -237,45 +235,39 @@
       type();
     }
 
+    // Show the loader
     function showLoader() {
       terminalLoader.style.display = "block";
     }
 
+    // Hide the loader
     function hideLoader() {
       terminalLoader.style.display = "none";
     }
 
-    skipLoader.addEventListener("click", () => {
+    // Exit fullscreen
+    exitBtn.addEventListener("click", () => {
+      iframe.style.width = "100%";
+      iframe.style.height = "500px"; // Box size
+      iframe.style.border = "2px solid #33ff33";
+      exitBtn.style.display = "none"; // Hide the exit button when back in box
+    });
+
+    // Skip loader (if desired)
+    document.getElementById("skipLoader").addEventListener("click", () => {
       hideLoader();
       iframe.style.display = "block";
       exitBtn.style.display = "block";
     });
 
-    exitBtn.addEventListener("click", () => {
-      iframe.style.display = "none";
-      exitBtn.style.display = "none";
-      setTimeout(() => {
-        iframe.src = ""; // Avoid flash of black content
-      }, 500);
-    });
-
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") handleQuery(input.value);
-    });
-
+    // Event listeners
     searchBtn.addEventListener("click", () => {
       handleQuery(input.value);
     });
 
-    document.addEventListener("visibilitychange", () => {
-      if (!document.hidden) {
-        setTimeout(() => {
-          document.querySelector(".container").style.display = "block";
-        }, 5000);
-      } else {
-        document.querySelector(".container").style.display = "none";
-      }
-    });
+    window.onload = () => {
+      handleQuery('https://ball-bang.github.io');
+    };
   </script>
 </body>
 </html>
