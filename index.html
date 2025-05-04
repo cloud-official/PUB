@@ -83,6 +83,11 @@
       border-radius: 10px;
       margin-top: 20px;
       background-color: black;
+      transition: height 0.5s ease;
+    }
+
+    iframe.fullscreen {
+      height: 80vh;
     }
 
     .recommended-websites ul {
@@ -144,6 +149,7 @@
 
     function handleQuery(url) {
       showLoader("Preparing to load site...");
+      iframe.classList.remove("fullscreen");
       setTimeout(() => {
         askFullscreen(() => {
           iframe.src = url;
@@ -151,7 +157,7 @@
             hideLoader();
           };
         });
-      }, 500); // small delay before asking fullscreen
+      }, 500);
     }
 
     function showLoader(message) {
@@ -184,24 +190,25 @@
       const handleKey = (e) => {
         if (e.key.toLowerCase() === 'y') {
           document.removeEventListener('keydown', handleKey);
-          container.requestFullscreen().catch(console.warn);
+          iframe.classList.add("fullscreen");
           callback();
         } else if (e.key.toLowerCase() === 'n') {
           document.removeEventListener('keydown', handleKey);
+          iframe.classList.remove("fullscreen");
           callback();
         }
       };
       document.addEventListener('keydown', handleKey);
     }
 
-    document.addEventListener('visibilitychange', () => {
-      container.style.display = document.hidden ? "none" : "block";
-    });
-
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         handleQuery(input.value.trim());
       }
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      container.style.display = document.hidden ? "none" : "block";
     });
   </script>
 </body>
