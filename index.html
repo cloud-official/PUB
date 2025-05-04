@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Google</title>
+  <title>Tixu Cloud PUB</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -83,11 +83,11 @@
       border-radius: 10px;
       margin-top: 20px;
       background-color: black;
-      transition: height 0.5s ease;
+      transition: all 0.4s ease;
     }
 
     iframe.fullscreen {
-      height: 80vh;
+      height: calc(100vh - 250px); /* adjust depending on header/input height */
     }
 
     .recommended-websites ul {
@@ -114,7 +114,7 @@
 <body>
   <header>
     <h1>Tixu Cloud PUB</h1>
-    <p>welcome thank you for visiting</p>
+    <p>Welcome, thank you for visiting</p>
   </header>
 
   <div class="container">
@@ -130,12 +130,12 @@
     <iframe id="iframe" src=""></iframe>
 
     <div class="recommended-websites">
-      <h3>websites | 290 games</h3>
+      <h3>Websites | 290 Games</h3>
       <ul>
         <li onclick="handleQuery('https://ball-bang.github.io')">Ball Bang Game</li>
-        <li onclick="handleQuery('https://3kh0s.github.io/games/')">3kh0s games</li>
-        <li onclick="handleQuery('https://githubgames.com/')">GitHub games</li>
-        <li onclick="handleQuery('https://ug17.github.io/Games.html')">ug17 games</li>
+        <li onclick="handleQuery('https://3kh0s.github.io/games/')">3kh0s Games</li>
+        <li onclick="handleQuery('https://githubgames.com/')">GitHub Games</li>
+        <li onclick="handleQuery('https://ug17.github.io/Games.html')">UG17 Games</li>
       </ul>
     </div>
   </div>
@@ -172,7 +172,7 @@
 
     function typeWriter(text, element, callback) {
       let i = 0;
-      let speed = 50;
+      const speed = 40;
       function type() {
         if (i < text.length) {
           element.textContent += text.charAt(i);
@@ -186,27 +186,37 @@
     }
 
     function askFullscreen(callback) {
-      showLoader("Enter Fullscreen? (Y/N)");
+      showLoader("Enter fullscreen? (Y/N)");
       const handleKey = (e) => {
-        if (e.key.toLowerCase() === 'y') {
+        const key = e.key.toLowerCase();
+        if (key === 'y') {
           document.removeEventListener('keydown', handleKey);
           iframe.classList.add("fullscreen");
           callback();
-        } else if (e.key.toLowerCase() === 'n') {
+        } else if (key === 'n') {
           document.removeEventListener('keydown', handleKey);
           iframe.classList.remove("fullscreen");
           callback();
         }
       };
-      document.addEventListener('keydown', handleKey);
+      document.addEventListener("keydown", handleKey);
     }
 
+    // Enter key triggers search
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         handleQuery(input.value.trim());
       }
     });
 
+    // Esc key to exit fullscreen
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        iframe.classList.remove("fullscreen");
+      }
+    });
+
+    // Hide UI when tab inactive
     document.addEventListener('visibilitychange', () => {
       container.style.display = document.hidden ? "none" : "block";
     });
