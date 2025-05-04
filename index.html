@@ -14,11 +14,14 @@
       color: #33ff33;
       text-align: center;
       padding: 50px 10px;
-      transition: background-color 4s ease-in-out;
+      transition: background-color 2s ease-in-out;
+      transition: visibility 0s linear 2s; /* For delayed visibility change */
     }
 
     body.inactive {
       background-color: white;
+      color: black;
+      visibility: hidden;
     }
 
     header {
@@ -153,6 +156,24 @@
     const container = document.querySelector(".container");
     const header = document.getElementById("header");
 
+    let inactivityTimeout;
+
+    // Function to reset the inactivity timer
+    const resetInactivityTimer = () => {
+      clearTimeout(inactivityTimeout);
+      inactivityTimeout = setTimeout(() => {
+        document.body.classList.add('inactive');
+        header.style.display = "none";
+        container.style.display = "none";
+      }, 3000); // 3 seconds of inactivity
+    };
+
+    // Add event listeners to detect user activity
+    document.addEventListener('mousemove', resetInactivityTimer);
+    document.addEventListener('keydown', resetInactivityTimer);
+    document.addEventListener('click', resetInactivityTimer);
+
+    // Function to handle URL queries
     function handleQuery(url) {
       showLoader("Preparing to load site...");
       iframe.classList.remove("fullscreen");
@@ -192,7 +213,7 @@
     }
 
     function askFullscreen(callback) {
-      showLoader("Enter fullscreen? (Y/N)");  // Fixed typo here
+      showLoader("Enter fullscreen? (Y/N)");
       const handleKey = (e) => {
         const key = e.key.toLowerCase();
         if (key === 'y') {
