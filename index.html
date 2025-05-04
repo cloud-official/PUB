@@ -3,21 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Tixu Cloud PUB</title>
+  <title>Google</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Courier New', Courier, monospace;
       background-color: #1a1a1a;
       color: #33ff33;
       text-align: center;
-      padding: 30px 10px;
+      padding: 50px 10px;
     }
 
     header {
@@ -32,8 +28,6 @@
       background-color: #333;
       border-radius: 15px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-      position: relative;
-      z-index: 1;
     }
 
     .terminal-loader {
@@ -47,11 +41,11 @@
       text-align: center;
       border-radius: 10px;
       display: none;
-      position: fixed;
+      position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      z-index: 1000;
+      z-index: 100;
     }
 
     .terminal-header {
@@ -64,12 +58,7 @@
       overflow: hidden;
       display: inline-block;
       border-right: 2px solid #33ff33;
-      animation: typing 4s steps(12) infinite, blink 0.75s step-end infinite;
-    }
-
-    @keyframes typing {
-      from { width: 0; }
-      to { width: 10em; }
+      animation: blink 0.75s step-end infinite;
     }
 
     @keyframes blink {
@@ -87,34 +76,13 @@
       margin-bottom: 20px;
     }
 
-    #searchBtn {
-      padding: 10px 20px;
-      font-size: 1.2rem;
-      border: 2px solid #33ff33;
-      background-color: #333;
-      color: #33ff33;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    #searchBtn:hover {
-      background-color: #33ff33;
-      color: #1a1a1a;
-    }
-
-    .iframe-wrapper {
-      margin-top: 20px;
-      display: none;
-      border: 2px solid #33ff33;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
     iframe {
       width: 100%;
       height: 500px;
-      border: none;
-      background-color: #000;
+      border: 2px solid #33ff33;
+      border-radius: 10px;
+      margin-top: 20px;
+      background-color: black;
     }
 
     .recommended-websites ul {
@@ -136,159 +104,104 @@
       background-color: #33ff33;
       color: #1a1a1a;
     }
-
-    #skipLoader {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: none;
-      color: #33ff33;
-      font-size: 1.5rem;
-      border: none;
-      cursor: pointer;
-    }
-
-    #fullscreenExit {
-      position: fixed;
-      top: 15px;
-      right: 15px;
-      background-color: rgba(0, 0, 0, 0.8);
-      color: #33ff33;
-      border: 2px solid #33ff33;
-      padding: 8px 12px;
-      font-size: 1rem;
-      border-radius: 5px;
-      cursor: pointer;
-      z-index: 1001;
-      display: none;
-    }
   </style>
 </head>
 <body>
   <header>
     <h1>Tixu Cloud PUB</h1>
-    <p>Welcome! Thank you for visiting.</p>
+    <p>welcome thank you for visiting</p>
   </header>
 
   <div class="container">
     <div id="searchBar">
       <input id="input" type="text" placeholder="Enter a URL or search..." />
-      <button id="searchBtn"><i class="fas fa-search"></i> Go</button>
     </div>
+
+    <div class="terminal-loader" id="terminalLoader">
+      <div class="terminal-header">Status</div>
+      <div class="text" id="terminalText"></div>
+    </div>
+
+    <iframe id="iframe" src=""></iframe>
 
     <div class="recommended-websites">
-      <h3>Websites | 290 Games</h3>
+      <h3>websites | 290 games</h3>
       <ul>
         <li onclick="handleQuery('https://ball-bang.github.io')">Ball Bang Game</li>
-        <li onclick="handleQuery('https://3kh0s.github.io/games/')">3kh0s Games</li>
-        <li onclick="handleQuery('https://githubgames.com/')">GitHub Games</li>
-        <li onclick="handleQuery('https://ug17.github.io/Games.html')">ug17 Games</li>
+        <li onclick="handleQuery('https://3kh0s.github.io/games/')">3kh0s games</li>
+        <li onclick="handleQuery('https://githubgames.com/')">GitHub games</li>
+        <li onclick="handleQuery('https://ug17.github.io/Games.html')">ug17 games</li>
       </ul>
     </div>
-
-    <div class="iframe-wrapper" id="iframeWrapper">
-      <iframe id="iframe" src=""></iframe>
-    </div>
   </div>
-
-  <div class="terminal-loader" id="terminalLoader">
-    <button id="skipLoader">✖</button>
-    <div class="terminal-header">Status</div>
-    <div class="text" id="terminalText">Connecting...</div>
-  </div>
-
-  <button id="fullscreenExit">Exit Fullscreen</button>
 
   <script>
     const input = document.getElementById("input");
-    const searchBtn = document.getElementById("searchBtn");
     const iframe = document.getElementById("iframe");
-    const iframeWrapper = document.getElementById("iframeWrapper");
     const terminalLoader = document.getElementById("terminalLoader");
     const terminalText = document.getElementById("terminalText");
-    const skipLoader = document.getElementById("skipLoader");
-    const fullscreenExit = document.getElementById("fullscreenExit");
-
-    let isFullscreen = false;
+    const container = document.querySelector(".container");
 
     function handleQuery(url) {
-      showLoader();
-
-      terminalText.innerHTML = "";
-      iframeWrapper.style.display = "none";
-      iframe.src = url;
-
-      typeWriter("Connecting...", terminalText, () => {
-        iframe.onload = () => {
-          hideLoader();
-          askFullscreen();
-        };
-      });
+      showLoader("Preparing to load site...");
+      setTimeout(() => {
+        askFullscreen(() => {
+          iframe.src = url;
+          iframe.onload = () => {
+            hideLoader();
+          };
+        });
+      }, 500); // small delay before asking fullscreen
     }
 
-    function askFullscreen() {
-      const confirmFullscreen = confirm("Do you want to open this in fullscreen?");
-      iframeWrapper.style.display = "block";
-      if (confirmFullscreen) {
-        enterFullscreen();
-      }
-    }
-
-    function enterFullscreen() {
-      iframeWrapper.style.position = "fixed";
-      iframeWrapper.style.top = 0;
-      iframeWrapper.style.left = 0;
-      iframeWrapper.style.width = "100vw";
-      iframeWrapper.style.height = "100vh";
-      iframe.style.height = "100%";
-      fullscreenExit.style.display = "block";
-      isFullscreen = true;
-    }
-
-    function exitFullscreen() {
-      iframeWrapper.style = ""; // Reset all styles
-      iframe.style.height = "500px";
-      fullscreenExit.style.display = "none";
-      isFullscreen = false;
-    }
-
-    fullscreenExit.addEventListener("click", exitFullscreen);
-
-    function typeWriter(text, element, callback) {
-      let i = 0;
-      let speed = 100;
-      function type() {
-        if (i < text.length) {
-          element.innerHTML += text.charAt(i);
-          i++;
-          setTimeout(type, speed);
-        } else {
-          callback();
-        }
-      }
-      type();
-    }
-
-    function showLoader() {
+    function showLoader(message) {
+      terminalText.textContent = "";
       terminalLoader.style.display = "block";
+      typeWriter(message, terminalText);
     }
 
     function hideLoader() {
       terminalLoader.style.display = "none";
     }
 
-    skipLoader.addEventListener("click", () => {
-      hideLoader();
-      iframeWrapper.style.display = "block";
-      askFullscreen();
+    function typeWriter(text, element, callback) {
+      let i = 0;
+      let speed = 50;
+      function type() {
+        if (i < text.length) {
+          element.textContent += text.charAt(i);
+          i++;
+          setTimeout(type, speed);
+        } else if (callback) {
+          callback();
+        }
+      }
+      type();
+    }
+
+    function askFullscreen(callback) {
+      showLoader("Enter Fullscreen? (Y/N)");
+      const handleKey = (e) => {
+        if (e.key.toLowerCase() === 'y') {
+          document.removeEventListener('keydown', handleKey);
+          container.requestFullscreen().catch(console.warn);
+          callback();
+        } else if (e.key.toLowerCase() === 'n') {
+          document.removeEventListener('keydown', handleKey);
+          callback();
+        }
+      };
+      document.addEventListener('keydown', handleKey);
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      container.style.display = document.hidden ? "none" : "block";
     });
 
-    input.addEventListener("keydown", e => {
-      if (e.key === "Enter") handleQuery(input.value);
-    });
-
-    searchBtn.addEventListener("click", () => {
-      handleQuery(input.value);
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        handleQuery(input.value.trim());
+      }
     });
   </script>
 </body>
