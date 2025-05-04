@@ -117,7 +117,7 @@
   </style>
 </head>
 <body>
-  <header>
+  <header id="header">
     <h1>Tixu Cloud PUB</h1>
     <p>Welcome, thank you for visiting</p>
   </header>
@@ -151,6 +151,7 @@
     const terminalLoader = document.getElementById("terminalLoader");
     const terminalText = document.getElementById("terminalText");
     const container = document.querySelector(".container");
+    const header = document.getElementById("header");
 
     function handleQuery(url) {
       showLoader("Preparing to load site...");
@@ -225,10 +226,12 @@
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         document.body.classList.add('inactive');
+        header.style.display = "none";
         container.style.display = "none";
       } else {
         document.body.classList.remove('inactive');
         setTimeout(() => {
+          header.style.display = "block";
           container.style.display = "block";
         }, 4000); // 4-second delay to show content again
       }
