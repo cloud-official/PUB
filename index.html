@@ -91,58 +91,81 @@
       transform: translateY(-2px);
     }
 
-    .notifications ul {
-      list-style: none;
-      padding: 0;
-      margin: 15px 0;
-    }
-
     .notification {
-      background: #fff7d1;
-      border: 1px solid #f1c40f;
-      color: #856404;
-      padding: 12px 16px;
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: #007BFF;
+      color: white;
+      padding: 15px 20px;
       border-radius: 10px;
-      margin-bottom: 10px;
-      font-weight: 600;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      z-index: 1000;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
       cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-      transition: background 0.3s;
-    }
-    .notification:hover {
-      background: #fff3b0;
+      animation: fadein 0.3s ease;
     }
 
-    .history {
-      margin-top: 30px;
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    .history ul {
-      list-style-type: none;
-      padding: 0;
-    }
-    .history-item {
-      background: #f1f1f1;
-      padding: 10px;
-      border-radius: 10px;
-      margin: 5px 0;
+
+    /* Newton's Cradle Loader */
+    .newtons-cradle {
+      --uib-size: 50px;
+      --uib-speed: 1.2s;
+      --uib-color: #474554;
+      position: relative;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      justify-content: center;
+      width: var(--uib-size);
+      height: var(--uib-size);
+      margin: 0 auto;
     }
-    .delete-btn {
-      background: red;
-      color: white;
-      border: none;
+
+    .newtons-cradle__dot {
+      position: relative;
+      display: flex;
+      align-items: center;
+      height: 100%;
+      width: 25%;
+      transform-origin: center top;
+    }
+
+    .newtons-cradle__dot::after {
+      content: '';
+      display: block;
+      width: 100%;
+      height: 25%;
       border-radius: 50%;
-      padding: 5px 10px;
-      cursor: pointer;
+      background-color: var(--uib-color);
     }
-    .delete-btn:hover {
-      background: darkred;
+
+    .newtons-cradle__dot:first-child {
+      animation: swing var(--uib-speed) linear infinite;
+    }
+
+    .newtons-cradle__dot:last-child {
+      animation: swing2 var(--uib-speed) linear infinite;
+    }
+
+    @keyframes swing {
+      0% { transform: rotate(0deg); animation-timing-function: ease-out; }
+      25% { transform: rotate(70deg); animation-timing-function: ease-in; }
+      50% { transform: rotate(0deg); animation-timing-function: linear; }
+    }
+
+    @keyframes swing2 {
+      0% { transform: rotate(0deg); animation-timing-function: linear; }
+      50% { transform: rotate(0deg); animation-timing-function: ease-out; }
+      75% { transform: rotate(-70deg); animation-timing-function: ease-in; }
+    }
+
+    .loader {
+      display: none;
+      margin-top: 30px;
+      text-align: center;
     }
   </style>
 </head>
@@ -161,6 +184,15 @@
       <button class="fullscreen-btn" id="fullscreenBtn"><i class="fas fa-expand"></i> Fullscreen</button>
     </div>
 
+    <div class="loader" id="loader">
+      <div class="newtons-cradle">
+        <div class="newtons-cradle__dot"></div>
+        <div class="newtons-cradle__dot"></div>
+        <div class="newtons-cradle__dot"></div>
+        <div class="newtons-cradle__dot"></div>
+      </div>
+    </div>
+
     <iframe id="iframe" src=""></iframe>
 
     <div class="supported">
@@ -174,82 +206,64 @@
         <li><button class="supported-link" data-query="chat.vercel.ai"><i class="fas fa-robot"></i> AI</button></li>
       </ul>
     </div>
-
-    <div class="notifications">
-      <h3>Notifications:</h3>
-      <ul id="notificationList"></ul>
-    </div>
-
-    <div class="history">
-      <h3>Search History:</h3>
-      <ul id="historyList"></ul>
-    </div>
   </div>
 
   <script>
     const input = document.getElementById("input");
     const searchBtn = document.getElementById("searchBtn");
     const iframe = document.getElementById("iframe");
+    const loader = document.getElementById("loader");
     const fullscreenBtn = document.getElementById("fullscreenBtn");
-    const historyList = document.getElementById("historyList");
 
     const isDirectUrl = str => /\.(com|net|org|io|vercel\.app|vercel\.ai|site|gov|edu|github\.io)(\/|$)/i.test(str);
 
     function handleQuery(query) {
-      let trimmed = query.trim();
+      const trimmed = query.trim();
       if (!trimmed) return;
 
-      let url;
-      if (isDirectUrl(trimmed)) {
-        if (!/^https?:\/\//i.test(trimmed)) {
-          trimmed = "https://" + trimmed;
+      showLoader();
+      showNotification("Searching...");
+
+      setTimeout(() => {
+        let url;
+        if (isDirectUrl(trimmed)) {
+          url = /^https?:\/\//i.test(trimmed) ? trimmed : "https://" + trimmed;
+        } else {
+          url = `https://www.bing.com/search?q=${encodeURIComponent(trimmed)}`;
         }
-        url = trimmed;
-      } else {
-        url = `https://www.bing.com/search?q=${encodeURIComponent(trimmed)}`;
-      }
 
-      iframe.src = url;
-
-      let history = JSON.parse(localStorage.getItem('history')) || [];
-      if (!history.includes(trimmed)) {
-        history.push(trimmed);
-        localStorage.setItem('history', JSON.stringify(history));
-        renderHistory();
-      }
-
-      addNotification(`Loading "${trimmed}"...`, 4000);
+        iframe.src = url;
+        hideLoader();
+      }, 3000);
     }
 
-    function renderHistory() {
-      let history = JSON.parse(localStorage.getItem('history')) || [];
-      historyList.innerHTML = '';
-      history.forEach((item, index) => {
-        const li = document.createElement('li');
-        li.classList.add('history-item');
-        li.innerHTML = `
-          <span>${item}</span>
-          <button class="delete-btn" data-index="${index}"><i class="fas fa-trash"></i></button>
-        `;
-        historyList.appendChild(li);
+    function showLoader() {
+      loader.style.display = "block";
+    }
+
+    function hideLoader() {
+      loader.style.display = "none";
+    }
+
+    function showNotification(message) {
+      const notification = document.createElement("div");
+      notification.className = "notification";
+      notification.textContent = message;
+      document.body.appendChild(notification);
+
+      notification.addEventListener("click", () => {
+        notification.remove();
       });
 
-      document.querySelectorAll('.delete-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-          const index = e.target.closest("button").dataset.index;
-          deleteHistoryItem(index);
-        });
-      });
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.remove();
+        }
+      }, 3000);
     }
 
-    function deleteHistoryItem(index) {
-      let history = JSON.parse(localStorage.getItem('history')) || [];
-      history.splice(index, 1);
-      localStorage.setItem('history', JSON.stringify(history));
-      renderHistory();
-    }
-
-    fullscreenBtn.addEventListener('click', () => {
+    // Fullscreen toggle
+    fullscreenBtn.addEventListener("click", () => {
       if (document.fullscreenElement) {
         document.exitFullscreen();
         fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i> Fullscreen';
@@ -268,27 +282,6 @@
         input.value = button.dataset.query;
         handleQuery(button.dataset.query);
       });
-    });
-
-    function addNotification(message, duration = 5000) {
-      const list = document.getElementById("notificationList");
-      const item = document.createElement("li");
-      item.className = "notification";
-      item.textContent = message;
-
-      item.addEventListener("click", () => list.removeChild(item));
-      list.appendChild(item);
-
-      setTimeout(() => {
-        if (list.contains(item)) {
-          list.removeChild(item);
-        }
-      }, duration);
-    }
-
-    window.addEventListener("DOMContentLoaded", () => {
-      renderHistory();
-      addNotification("Welcome to Tixu Cloud PUB!", 4000);
     });
   </script>
 </body>
