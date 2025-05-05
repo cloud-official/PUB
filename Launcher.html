@@ -83,8 +83,14 @@
       box-shadow: var(--shadow);
     }
 
-    .run-btn {
-      padding: 10px 20px;
+    .btns {
+      display: flex;
+      gap: 10px;
+    }
+
+    .run-btn, .fullscreen-btn {
+      flex: 1;
+      padding: 10px;
       background: var(--accent);
       color: white;
       border: none;
@@ -93,14 +99,26 @@
       transition: var(--transition);
     }
 
-    .run-btn:hover {
+    .run-btn:hover, .fullscreen-btn:hover {
       background: #005fc1;
+    }
+
+    .fullscreen-mode {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 9999;
+      background: var(--bg);
+      padding: 20px;
+      overflow: auto;
     }
   </style>
 </head>
 <body>
 
-  <div class="editor-container">
+  <div class="editor-container" id="editor">
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('html')">HTML</button>
       <button class="tab-btn" onclick="switchTab('css')">CSS</button>
@@ -111,7 +129,10 @@
     <textarea id="css" class="code-input" style="display:none" oninput="autoCorrect(this)">body { col }</textarea>
     <textarea id="js" class="code-input" style="display:none" oninput="autoCorrect(this)">console.log('Hello');</textarea>
 
-    <button class="run-btn" onclick="runCode()">Run Code</button>
+    <div class="btns">
+      <button class="run-btn" onclick="runCode()">Run Code</button>
+      <button class="fullscreen-btn" onclick="toggleFullscreen()">Toggle Fullscreen</button>
+    </div>
   </div>
 
   <iframe id="preview"></iframe>
@@ -166,6 +187,11 @@
       if (map[last]) {
         el.value = value.replace(new RegExp(last + '$'), map[last]);
       }
+    }
+
+    function toggleFullscreen() {
+      const container = document.getElementById('editor');
+      container.classList.toggle('fullscreen-mode');
     }
   </script>
 
