@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>iOS Settings</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f2f2f7;
+    }
+    .top-bar {
+      background: white;
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .top-bar input {
+      flex: 1;
+      margin-right: 10px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    .notification {
+      width: 24px;
+      height: 24px;
+    }
+    .section {
+      margin-top: 20px;
+    }
+    .setting-link {
+      text-decoration: none;
+    }
+    .setting {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      background: white;
+      border-bottom: 1px solid #e0e0e0;
+      transition: background 0.2s;
+    }
+    .setting:hover {
+      background: #e6e6ea;
+    }
+    .setting img {
+      width: 28px;
+      height: 28px;
+      margin-right: 15px;
+      border-radius: 5px;
+    }
+    .setting span {
+      font-size: 17px;
+      color: #000;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <input type="text" placeholder="Search">
+    <img src="https://img.icons8.com/ios-glyphs/30/000000/appointment-reminders.png" class="notification">
+  </div>
+
+  <div class="section">
+    <a href="/WiFi.html" class="setting-link">
+      <div class="setting">
+        <img src="https://img.icons8.com/fluency/48/000000/wifi.png" />
+        <span>Wi-Fi</span>
+      </div>
+    </a>
+    <a href="/Bluetooth.html" class="setting-link">
+      <div class="setting">
+        <img src="https://img.icons8.com/color/48/000000/bluetooth.png" />
+        <span>Bluetooth</span>
+      </div>
+    </a>
+    <a href="/Focus.html" class="setting-link">
+      <div class="setting">
+        <img src="https://img.icons8.com/color/48/000000/moon-symbol.png" />
+        <span>Focus</span>
+      </div>
+    </a>
+    <a href="/General.html" class="setting-link">
+      <div class="setting">
+        <img src="https://img.icons8.com/color/48/000000/gear.png" />
+        <span>General</span>
+      </div>
+    </a>
+    <a href="/Privacy.html" class="setting-link">
+      <div class="setting">
+        <img src="https://img.icons8.com/fluency/48/000000/lock.png" />
+        <span>Privacy & Security</span>
+      </div>
+    </a>
+  </div>
+
+</body>
+</html>
