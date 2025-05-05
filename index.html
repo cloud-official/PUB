@@ -105,6 +105,14 @@
       animation: fadein 0.3s ease;
     }
 
+    .notification.success {
+      background: #28a745;
+    }
+
+    .notification.error {
+      background: #dc3545;
+    }
+
     @keyframes fadein {
       from { opacity: 0; transform: translateY(-10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -222,7 +230,7 @@
       if (!trimmed) return;
 
       showLoader();
-      showNotification("Searching...");
+      showNotification("Searching...", "info");
 
       setTimeout(() => {
         let url;
@@ -234,6 +242,7 @@
 
         iframe.src = url;
         hideLoader();
+        showNotification("Search completed!", "success");
       }, 3000);
     }
 
@@ -245,9 +254,9 @@
       loader.style.display = "none";
     }
 
-    function showNotification(message) {
+    function showNotification(message, type = "info") {
       const notification = document.createElement("div");
-      notification.className = "notification";
+      notification.className = `notification ${type}`;
       notification.textContent = message;
       document.body.appendChild(notification);
 
