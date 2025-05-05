@@ -51,7 +51,7 @@
       height: 500px;
       border: none;
       border-radius: 10px;
-      display: none;
+      display: block;
       margin-top: 20px;
     }
     .fullscreen-btn {
@@ -91,54 +91,58 @@
       transform: translateY(-2px);
     }
 
-    /* Loader */
-    .loader-container {
-      display: none;
-      justify-content: center;
-      margin: 30px 0;
+    .notifications ul {
+      list-style: none;
+      padding: 0;
+      margin: 15px 0;
     }
-    .newtons-cradle {
-      --uib-size: 50px;
-      --uib-speed: 1.2s;
-      --uib-color: #474554;
-      position: relative;
+
+    .notification {
+      background: #fff7d1;
+      border: 1px solid #f1c40f;
+      color: #856404;
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      font-weight: 600;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
-      width: var(--uib-size);
-      height: var(--uib-size);
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      transition: background 0.3s;
     }
-    .newtons-cradle__dot {
-      position: relative;
+    .notification:hover {
+      background: #fff3b0;
+    }
+
+    .history {
+      margin-top: 30px;
+    }
+    .history ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    .history-item {
+      background: #f1f1f1;
+      padding: 10px;
+      border-radius: 10px;
+      margin: 5px 0;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      height: 100%;
-      width: 25%;
-      transform-origin: center top;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
-    .newtons-cradle__dot::after {
-      content: '';
-      display: block;
-      width: 100%;
-      height: 25%;
+    .delete-btn {
+      background: red;
+      color: white;
+      border: none;
       border-radius: 50%;
-      background-color: var(--uib-color);
+      padding: 5px 10px;
+      cursor: pointer;
     }
-    .newtons-cradle__dot:first-child {
-      animation: swing var(--uib-speed) linear infinite;
-    }
-    .newtons-cradle__dot:last-child {
-      animation: swing2 var(--uib-speed) linear infinite;
-    }
-    @keyframes swing {
-      0% { transform: rotate(0deg); animation-timing-function: ease-out; }
-      25% { transform: rotate(70deg); animation-timing-function: ease-in; }
-      50% { transform: rotate(0deg); animation-timing-function: linear; }
-    }
-    @keyframes swing2 {
-      0% { transform: rotate(0deg); animation-timing-function: linear; }
-      50% { transform: rotate(0deg); animation-timing-function: ease-out; }
-      75% { transform: rotate(-70deg); animation-timing-function: ease-in; }
+    .delete-btn:hover {
+      background: darkred;
     }
   </style>
 </head>
@@ -157,16 +161,6 @@
       <button class="fullscreen-btn" id="fullscreenBtn"><i class="fas fa-expand"></i> Fullscreen</button>
     </div>
 
-    <!-- Loader Animation -->
-    <div class="loader-container" id="loader">
-      <div class="newtons-cradle">
-        <div class="newtons-cradle__dot"></div>
-        <div class="newtons-cradle__dot"></div>
-        <div class="newtons-cradle__dot"></div>
-        <div class="newtons-cradle__dot"></div>
-      </div>
-    </div>
-
     <iframe id="iframe" src=""></iframe>
 
     <div class="supported">
@@ -176,9 +170,19 @@
         <li><button class="supported-link" data-query="https://onlinegames.io"><i class="fas fa-globe"></i> Online Games</button></li>
         <li><button class="supported-link" data-query="Block Blast game"><i class="fas fa-cube"></i> Block Blast</button></li>
         <li><button class="supported-link" data-query="mathgames66.github.io"><i class="fas fa-calculator"></i> Math Games</button></li>
-        <li><button class="supported-link" data-query="https://artclass-static.vercel.app/"><i class="fas fa-paint-brush"></i> Art class V2</button></li>
+        <li><button class="supported-link" data-query="https://artclass-static.vercel.app/"><i class="fas fa-paint-brush"></i> Art Class V2</button></li>
         <li><button class="supported-link" data-query="chat.vercel.ai"><i class="fas fa-robot"></i> AI</button></li>
       </ul>
+    </div>
+
+    <div class="notifications">
+      <h3>Notifications:</h3>
+      <ul id="notificationList"></ul>
+    </div>
+
+    <div class="history">
+      <h3>Search History:</h3>
+      <ul id="historyList"></ul>
     </div>
   </div>
 
@@ -187,7 +191,7 @@
     const searchBtn = document.getElementById("searchBtn");
     const iframe = document.getElementById("iframe");
     const fullscreenBtn = document.getElementById("fullscreenBtn");
-    const loader = document.getElementById("loader");
+    const historyList = document.getElementById("historyList");
 
     const isDirectUrl = str => /\.(com|net|org|io|vercel\.app|vercel\.ai|site|gov|edu|github\.io)(\/|$)/i.test(str);
 
@@ -205,14 +209,44 @@
         url = `https://www.bing.com/search?q=${encodeURIComponent(trimmed)}`;
       }
 
-      iframe.style.display = "none";
-      loader.style.display = "flex";
+      iframe.src = url;
 
-      setTimeout(() => {
-        loader.style.display = "none";
-        iframe.src = url;
-        iframe.style.display = "block";
-      }, 3000);
+      let history = JSON.parse(localStorage.getItem('history')) || [];
+      if (!history.includes(trimmed)) {
+        history.push(trimmed);
+        localStorage.setItem('history', JSON.stringify(history));
+        renderHistory();
+      }
+
+      addNotification(`Loading "${trimmed}"...`, 4000);
+    }
+
+    function renderHistory() {
+      let history = JSON.parse(localStorage.getItem('history')) || [];
+      historyList.innerHTML = '';
+      history.forEach((item, index) => {
+        const li = document.createElement('li');
+        li.classList.add('history-item');
+        li.innerHTML = `
+          <span>${item}</span>
+          <button class="delete-btn" data-index="${index}"><i class="fas fa-trash"></i></button>
+        `;
+        historyList.appendChild(li);
+      });
+
+      document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+          const index = e.target.closest("button").dataset.index;
+          deleteHistoryItem(index);
+        });
+      });
+    }
+
+    function deleteHistoryItem(index) {
+      let history = JSON.parse(localStorage.getItem('history')) || [];
+      history.splice(index, 1);
+      localStorage.setItem('history', JSON.stringify(history));
+      renderHistory();
     }
 
     fullscreenBtn.addEventListener('click', () => {
@@ -234,6 +268,27 @@
         input.value = button.dataset.query;
         handleQuery(button.dataset.query);
       });
+    });
+
+    function addNotification(message, duration = 5000) {
+      const list = document.getElementById("notificationList");
+      const item = document.createElement("li");
+      item.className = "notification";
+      item.textContent = message;
+
+      item.addEventListener("click", () => list.removeChild(item));
+      list.appendChild(item);
+
+      setTimeout(() => {
+        if (list.contains(item)) {
+          list.removeChild(item);
+        }
+      }, duration);
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      renderHistory();
+      addNotification("Welcome to Tixu Cloud PUB!", 4000);
     });
   </script>
 </body>
