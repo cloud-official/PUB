@@ -137,6 +137,9 @@
       cursor: pointer;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
       animation: fadein 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
     .notification.success {
@@ -145,6 +148,15 @@
 
     .notification.error {
       background: #ff3b30;
+    }
+
+    .notification.info {
+      background: #007aff;
+    }
+
+    .notification img {
+      width: 24px;
+      height: 24px;
     }
 
     @keyframes fadein {
@@ -184,53 +196,6 @@
       0% { opacity: 0.3; transform: translateY(0); }
       100% { opacity: 1; transform: translateY(-10px); }
     }
-
-    .settings {
-      background: #f8f8f8;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      margin-top: 30px;
-    }
-
-    .settings h3 {
-      margin-top: 0;
-    }
-
-    .settings .setting {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 15px;
-    }
-
-    .settings input[type="checkbox"] {
-      transform: scale(1.3);
-    }
-
-    #addWebsiteForm {
-      margin-top: 20px;
-    }
-
-    #addWebsiteForm input[type="text"] {
-      padding: 10px;
-      width: 80%;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-
-    #addWebsiteForm button {
-      padding: 10px 15px;
-      border-radius: 8px;
-      border: 1px solid #007aff;
-      background-color: #007aff;
-      color: white;
-      cursor: pointer;
-    }
-
-    #addWebsiteForm button:hover {
-      background-color: #0051a8;
-    }
-
   </style>
 </head>
 <body>
@@ -263,24 +228,6 @@
         <!-- Dynamically populated list of supported links -->
       </ul>
     </div>
-
-    <div id="addWebsiteForm">
-      <h3>Add a Custom Website</h3>
-      <input type="text" id="newWebsiteInput" placeholder="Enter URL to add..." />
-      <button id="addWebsiteBtn">Add Website</button>
-    </div>
-
-    <div class="settings">
-      <h3>Settings</h3>
-      <div class="setting">
-        <span>Enable Notifications</span>
-        <input type="checkbox" id="enableNotifications" checked />
-      </div>
-      <div class="setting">
-        <span>Dark Mode</span>
-        <input type="checkbox" id="darkMode" checked />
-      </div>
-    </div>
   </div>
 
   <script>
@@ -289,33 +236,22 @@
     const iframe = document.getElementById("iframe");
     const loader = document.getElementById("loader");
     const fullscreenBtn = document.getElementById("fullscreenBtn");
-    const enableNotifications = document.getElementById("enableNotifications");
-    const darkMode = document.getElementById("darkMode");
-    const addWebsiteInput = document.getElementById("newWebsiteInput");
-    const addWebsiteBtn = document.getElementById("addWebsiteBtn");
     const supportedLinksList = document.getElementById("supportedLinksList");
 
-    const isDirectUrl = str => /\.(com|net|org|io|vercel\.app|vercel\.ai|site|gov|edu|github\.io)(\/|$)/i.test(str);
-
-    let supportedLinks = JSON.parse(localStorage.getItem("supportedLinks")) || [
+    let supportedLinks = [
       { url: "https://sz-games.github.io", label: "SZ Games", icon: "fa-gamepad" },
       { url: "https://onlinegames.io", label: "Online Games", icon: "fa-globe" },
-      { url: "Block Blast game", label: "Block Blast", icon: "fa-cube" },
-      { url: "mathgames66.github.io", label: "Math Games", icon: "fa-calculator" },
-      { url: "https://artclass-static.vercel.app/", label: "Art Class V2", icon: "fa-paint-brush" },
-      { url: "chat.vercel.ai", label: "AI", icon: "fa-robot" }
+      { url: "https://blockblast.com", label: "Block Blast", icon: "fa-cube" },
     ];
 
     function renderSupportedLinks() {
       supportedLinksList.innerHTML = '';
       supportedLinks.forEach(link => {
-        const li = document.createElement("li");
-        const button = document.createElement("button");
-        button.className = "supported-link";
-        button.dataset.query = link.url;
+        const li = document.createElement('li');
+        const button = document.createElement('button');
+        button.className = 'supported-link';
         button.innerHTML = `<i class="fas ${link.icon}"></i> ${link.label}`;
-        button.addEventListener("click", () => {
-          input.value = link.url;
+        button.addEventListener('click', () => {
           handleQuery(link.url);
         });
         li.appendChild(button);
@@ -328,15 +264,8 @@
       if (!trimmed) return;
 
       showLoader();
-      showNotification("Searching...", "info");
-
       setTimeout(() => {
-        let url;
-        if (isDirectUrl(trimmed)) {
-          url = /^https?:\/\//i.test(trimmed) ? trimmed : "https://" + trimmed;
-        } else {
-          url = `https://www.google.com/search?q=${encodeURIComponent(trimmed)}`;
-        }
+        let url = trimmed;
         iframe.src = url;
         hideLoader();
       }, 1500);
@@ -350,57 +279,697 @@
       loader.style.display = "none";
     }
 
-    function showNotification(message, type = "success") {
+    function showNotification(message, type = "info") {
       const notification = document.createElement("div");
       notification.classList.add("notification", type);
-      notification.innerText = message;
+
+      let iconUrl;
+      switch (type) {
+        case "success":
+          iconUrl = "https://img.icons8.com/ios-filled/50/34c759/checkmark.png";  // Success icon
+          break;
+        case "error":
+          iconUrl = "https://img.icons8.com/ios-filled/50/ff3b30/delete-sign.png";  // Error icon
+          break;
+        case "info":
+        default:
+          iconUrl = "https://img.icons8.com/ios-filled/50/007aff/info.png";  // Info icon
+          break;
+      }
+
+      notification.innerHTML = `<img src="${iconUrl}" alt="${type}" /> ${message}`;
       document.body.appendChild(notification);
 
       setTimeout(() => {
         notification.remove();
-      }, 3000);
+      }, 3000);  // Hide after 3 seconds
     }
 
-    searchBtn.addEventListener("click", () => handleQuery(input.value));
+    searchBtn.addEventListener("click", () => {
+      handleQuery(input.value);
+    });
 
     fullscreenBtn.addEventListener("click", () => {
       if (document.fullscreenElement) {
         document.exitFullscreen();
+        fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i> Fullscreen';
       } else {
-        document.documentElement.requestFullscreen();
+        iframe.requestFullscreen();
+        fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i> Exit Fullscreen';
       }
     });
 
-    addWebsiteBtn.addEventListener("click", () => {
-      const newWebsite = addWebsiteInput.value.trim();
-      if (newWebsite && !supportedLinks.some(link => link.url === newWebsite)) {
-        const newLink = { url: newWebsite, label: `Custom Website`, icon: "fa-link" };
-        supportedLinks.push(newLink);
-        localStorage.setItem("supportedLinks", JSON.stringify(supportedLinks));
-        renderSupportedLinks();
-        addWebsiteInput.value = ''; // Clear the input
-        showNotification("Website added!", "success");
+    renderSupportedLinks();  // Initialize supported links list
+  </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tixu Cloud PUB</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+      background: #f0f0f5;
+      color: #333;
+    }
+
+    header {
+      background: #333;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+      font-size: 1.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    #searchBar {
+      display: flex;
+      margin-bottom: 20px;
+    }
+
+    #input {
+      flex: 1;
+      padding: 12px;
+      font-size: 16px;
+      background: #f4f4f4;
+      color: #333;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      transition: 0.3s ease;
+    }
+
+    #input:focus {
+      border-color: #007aff;
+      outline: none;
+      background-color: #fff;
+    }
+
+    #searchBtn {
+      padding: 12px 20px;
+      font-size: 16px;
+      background: #007aff;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    #searchBtn:hover {
+      background: #0051a8;
+    }
+
+    iframe {
+      width: 100%;
+      height: 500px;
+      border: none;
+      border-radius: 12px;
+      display: block;
+      margin-top: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .fullscreen-btn {
+      background: #222;
+      color: white;
+      border: none;
+      cursor: pointer;
+      padding: 12px;
+      margin-top: 15px;
+      border-radius: 8px;
+      display: inline-block;
+      transition: background 0.3s ease;
+    }
+
+    .fullscreen-btn:hover {
+      background: #007aff;
+    }
+
+    .supported ul {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      padding: 0;
+      list-style: none;
+      margin-top: 20px;
+    }
+
+    .supported-link {
+      background: #f8f8f8;
+      border: 2px solid #ccc;
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: 16px;
+      font-weight: 600;
+      text-align: left;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .supported-link:hover {
+      background: #007aff;
+      color: white;
+      border-color: #007aff;
+    }
+
+    .notification {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: #007aff;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      z-index: 1000;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      animation: fadein 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .notification.success {
+      background: #34c759;
+    }
+
+    .notification.error {
+      background: #ff3b30;
+    }
+
+    .notification.info {
+      background: #007aff;
+    }
+
+    .notification img {
+      width: 24px;
+      height: 24px;
+    }
+
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .loader {
+      display: none;
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    .loader div {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      margin: 0 5px;
+      background-color: #007aff;
+      border-radius: 50%;
+      animation: loaderAnimation 0.8s infinite alternate;
+    }
+
+    .loader div:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .loader div:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    .loader div:nth-child(4) {
+      animation-delay: 0.6s;
+    }
+
+    @keyframes loaderAnimation {
+      0% { opacity: 0.3; transform: translateY(0); }
+      100% { opacity: 1; transform: translateY(-10px); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Tixu Cloud PUB</h1>
+  </header>
+
+  <div class="container">
+    <div id="searchBar">
+      <input id="input" type="text" placeholder="Enter a URL or search..." />
+      <button id="searchBtn"><i class="fas fa-search"></i> Go</button>
+    </div>
+
+    <div>
+      <button class="fullscreen-btn" id="fullscreenBtn"><i class="fas fa-expand"></i> Fullscreen</button>
+    </div>
+
+    <div class="loader" id="loader">
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+
+    <iframe id="iframe" src=""></iframe>
+
+    <div class="supported">
+      <h3>Supported Links:</h3>
+      <ul id="supportedLinksList">
+        <!-- Dynamically populated list of supported links -->
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const input = document.getElementById("input");
+    const searchBtn = document.getElementById("searchBtn");
+    const iframe = document.getElementById("iframe");
+    const loader = document.getElementById("loader");
+    const fullscreenBtn = document.getElementById("fullscreenBtn");
+    const supportedLinksList = document.getElementById("supportedLinksList");
+
+    let supportedLinks = [
+      { url: "https://sz-games.github.io", label: "SZ Games", icon: "fa-gamepad" },
+      { url: "https://onlinegames.io", label: "Online Games", icon: "fa-globe" },
+      { url: "https://blockblast.com", label: "Block Blast", icon: "fa-cube" },
+    ];
+
+    function renderSupportedLinks() {
+      supportedLinksList.innerHTML = '';
+      supportedLinks.forEach(link => {
+        const li = document.createElement('li');
+        const button = document.createElement('button');
+        button.className = 'supported-link';
+        button.innerHTML = `<i class="fas ${link.icon}"></i> ${link.label}`;
+        button.addEventListener('click', () => {
+          handleQuery(link.url);
+        });
+        li.appendChild(button);
+        supportedLinksList.appendChild(li);
+      });
+    }
+
+    function handleQuery(query) {
+      const trimmed = query.trim();
+      if (!trimmed) return;
+
+      showLoader();
+      setTimeout(() => {
+        let url = trimmed;
+        iframe.src = url;
+        hideLoader();
+      }, 1500);
+    }
+
+    function showLoader() {
+      loader.style.display = "block";
+    }
+
+    function hideLoader() {
+      loader.style.display = "none";
+    }
+
+    function showNotification(message, type = "info") {
+      const notification = document.createElement("div");
+      notification.classList.add("notification", type);
+
+      let iconUrl;
+      switch (type) {
+        case "success":
+          iconUrl = "https://img.icons8.com/ios-filled/50/34c759/checkmark.png";  // Success icon
+          break;
+        case "error":
+          iconUrl = "https://img.icons8.com/ios-filled/50/ff3b30/delete-sign.png";  // Error icon
+          break;
+        case "info":
+        default:
+          iconUrl = "https://img.icons8.com/ios-filled/50/007aff/info.png";  // Info icon
+          break;
+      }
+
+      notification.innerHTML = `<img src="${iconUrl}" alt="${type}" /> ${message}`;
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.remove();
+      }, 3000);  // Hide after 3 seconds
+    }
+
+    searchBtn.addEventListener("click", () => {
+      handleQuery(input.value);
+    });
+
+    fullscreenBtn.addEventListener("click", () => {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+        fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i> Fullscreen';
       } else {
-        showNotification("Invalid URL or website already added", "error");
+        iframe.requestFullscreen();
+        fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i> Exit Fullscreen';
       }
     });
 
-    enableNotifications.addEventListener("change", () => {
-      localStorage.setItem("notificationsEnabled", enableNotifications.checked);
+    renderSupportedLinks();  // Initialize supported links list
+  </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tixu Cloud PUB</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+      background: #f0f0f5;
+      color: #333;
+    }
+
+    header {
+      background: #333;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+      font-size: 1.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    #searchBar {
+      display: flex;
+      margin-bottom: 20px;
+    }
+
+    #input {
+      flex: 1;
+      padding: 12px;
+      font-size: 16px;
+      background: #f4f4f4;
+      color: #333;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      transition: 0.3s ease;
+    }
+
+    #input:focus {
+      border-color: #007aff;
+      outline: none;
+      background-color: #fff;
+    }
+
+    #searchBtn {
+      padding: 12px 20px;
+      font-size: 16px;
+      background: #007aff;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    #searchBtn:hover {
+      background: #0051a8;
+    }
+
+    iframe {
+      width: 100%;
+      height: 500px;
+      border: none;
+      border-radius: 12px;
+      display: block;
+      margin-top: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .fullscreen-btn {
+      background: #222;
+      color: white;
+      border: none;
+      cursor: pointer;
+      padding: 12px;
+      margin-top: 15px;
+      border-radius: 8px;
+      display: inline-block;
+      transition: background 0.3s ease;
+    }
+
+    .fullscreen-btn:hover {
+      background: #007aff;
+    }
+
+    .supported ul {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      padding: 0;
+      list-style: none;
+      margin-top: 20px;
+    }
+
+    .supported-link {
+      background: #f8f8f8;
+      border: 2px solid #ccc;
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: 16px;
+      font-weight: 600;
+      text-align: left;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .supported-link:hover {
+      background: #007aff;
+      color: white;
+      border-color: #007aff;
+    }
+
+    .notification {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: #007aff;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      z-index: 1000;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      animation: fadein 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .notification.success {
+      background: #34c759;
+    }
+
+    .notification.error {
+      background: #ff3b30;
+    }
+
+    .notification.info {
+      background: #007aff;
+    }
+
+    .notification img {
+      width: 24px;
+      height: 24px;
+    }
+
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .loader {
+      display: none;
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    .loader div {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      margin: 0 5px;
+      background-color: #007aff;
+      border-radius: 50%;
+      animation: loaderAnimation 0.8s infinite alternate;
+    }
+
+    .loader div:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .loader div:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    .loader div:nth-child(4) {
+      animation-delay: 0.6s;
+    }
+
+    @keyframes loaderAnimation {
+      0% { opacity: 0.3; transform: translateY(0); }
+      100% { opacity: 1; transform: translateY(-10px); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Tixu Cloud PUB</h1>
+  </header>
+
+  <div class="container">
+    <div id="searchBar">
+      <input id="input" type="text" placeholder="Enter a URL or search..." />
+      <button id="searchBtn"><i class="fas fa-search"></i> Go</button>
+    </div>
+
+    <div>
+      <button class="fullscreen-btn" id="fullscreenBtn"><i class="fas fa-expand"></i> Fullscreen</button>
+    </div>
+
+    <div class="loader" id="loader">
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+
+    <iframe id="iframe" src=""></iframe>
+
+    <div class="supported">
+      <h3>Supported Links:</h3>
+      <ul id="supportedLinksList">
+        <!-- Dynamically populated list of supported links -->
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const input = document.getElementById("input");
+    const searchBtn = document.getElementById("searchBtn");
+    const iframe = document.getElementById("iframe");
+    const loader = document.getElementById("loader");
+    const fullscreenBtn = document.getElementById("fullscreenBtn");
+    const supportedLinksList = document.getElementById("supportedLinksList");
+
+    let supportedLinks = [
+      { url: "https://sz-games.github.io", label: "SZ Games", icon: "fa-gamepad" },
+      { url: "https://onlinegames.io", label: "Online Games", icon: "fa-globe" },
+      { url: "https://blockblast.com", label: "Block Blast", icon: "fa-cube" },
+    ];
+
+    function renderSupportedLinks() {
+      supportedLinksList.innerHTML = '';
+      supportedLinks.forEach(link => {
+        const li = document.createElement('li');
+        const button = document.createElement('button');
+        button.className = 'supported-link';
+        button.innerHTML = `<i class="fas ${link.icon}"></i> ${link.label}`;
+        button.addEventListener('click', () => {
+          handleQuery(link.url);
+        });
+        li.appendChild(button);
+        supportedLinksList.appendChild(li);
+      });
+    }
+
+    function handleQuery(query) {
+      const trimmed = query.trim();
+      if (!trimmed) return;
+
+      showLoader();
+      setTimeout(() => {
+        let url = trimmed;
+        iframe.src = url;
+        hideLoader();
+      }, 1500);
+    }
+
+    function showLoader() {
+      loader.style.display = "block";
+    }
+
+    function hideLoader() {
+      loader.style.display = "none";
+    }
+
+    function showNotification(message, type = "info") {
+      const notification = document.createElement("div");
+      notification.classList.add("notification", type);
+
+      let iconUrl;
+      switch (type) {
+        case "success":
+          iconUrl = "https://img.icons8.com/ios-filled/50/34c759/checkmark.png";  // Success icon
+          break;
+        case "error":
+          iconUrl = "https://img.icons8.com/ios-filled/50/ff3b30/delete-sign.png";  // Error icon
+          break;
+        case "info":
+        default:
+          iconUrl = "https://img.icons8.com/ios-filled/50/007aff/info.png";  // Info icon
+          break;
+      }
+
+      notification.innerHTML = `<img src="${iconUrl}" alt="${type}" /> ${message}`;
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.remove();
+      }, 3000);  // Hide after 3 seconds
+    }
+
+    searchBtn.addEventListener("click", () => {
+      handleQuery(input.value);
     });
 
-    darkMode.addEventListener("change", () => {
-      document.body.classList.toggle("dark-mode", darkMode.checked);
-      localStorage.setItem("darkModeEnabled", darkMode.checked);
+    fullscreenBtn.addEventListener("click", () => {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+        fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i> Fullscreen';
+      } else {
+        iframe.requestFullscreen();
+        fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i> Exit Fullscreen';
+      }
     });
 
-    // Load supported links and dark mode preference
-    renderSupportedLinks();
-    darkMode.checked = JSON.parse(localStorage.getItem("darkModeEnabled") || "false");
-    enableNotifications.checked = JSON.parse(localStorage.getItem("notificationsEnabled") || "true");
-
-    // Load the query from the input
-    handleQuery(input.value);
+    renderSupportedLinks();  // Initialize supported links list
   </script>
 </body>
 </html>
