@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>iOS 18 Style HTML Editor</title>
+  <style>
+    :root {
+      --bg: #f4f4f4;
+      --primary: #fff;
+      --text: #1c1c1e;
+      --accent: #007aff;
+      --radius: 20px;
+      --shadow: 0 10px 20px rgba(0,0,0,0.1);
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .editor-container {
+      background: var(--primary);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: var(--transition);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: var(--bg);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    textarea {
+      width: 100%;
+      height: 150px;
+      border: none;
+      border-radius: var(--radius);
+      padding: 10px;
+      resize: none;
+      font-size: 14px;
+      background: #fafafa;
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+      transition: var(--transition);
+    }
+
+    iframe {
+      width: 100%;
+      height: 300px;
+      border: none;
+      border-radius: var(--radius);
+      background: white;
+      box-shadow: var(--shadow);
+    }
+
+    .run-btn {
+      padding: 10px 20px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .run-btn:hover {
+      background: #005fc1;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="editor-container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('html')">HTML</button>
+      <button class="tab-btn" onclick="switchTab('css')">CSS</button>
+      <button class="tab-btn" onclick="switchTab('js')">JS</button>
+    </div>
+
+    <textarea id="html" class="code-input" oninput="autoCorrect(this)">&lt;h1&gt;Hello&lt;/h1&gt;</textarea>
+    <textarea id="css" class="code-input" style="display:none" oninput="autoCorrect(this)">body { col }</textarea>
+    <textarea id="js" class="code-input" style="display:none" oninput="autoCorrect(this)">console.log('Hello');</textarea>
+
+    <button class="run-btn" onclick="runCode()">Run Code</button>
+  </div>
+
+  <iframe id="preview"></iframe>
+
+  <script>
+    function switchTab(type) {
+      document.querySelectorAll('.code-input').forEach(el => el.style.display = 'none');
+      document.querySelector(`#${type}`).style.display = 'block';
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    function runCode() {
+      const html = document.getElementById('html').value;
+      const css = document.getElementById('css').value;
+      const js = document.getElementById('js').value;
+
+      const output = `
+        <html>
+        <head>
+          <style>${css}</style>
+        </head>
+        <body>
+          ${html}
+          <script>${js}<\/script>
+        </body>
+        </html>
+      `;
+
+      const iframe = document.getElementById('preview');
+      iframe.srcdoc = output;
+    }
+
+    function autoCorrect(el) {
+      const map = {
+        'col': 'color: var(--text);',
+        'bgc': 'background-color: white;',
+        'ff': 'font-family: Arial, sans-serif;',
+        'fs': 'font-size: 16px;',
+        'pd': 'padding: 10px;',
+        'mg': 'margin: 10px;',
+        'br': 'border-radius: 12px;',
+        'bx': 'box-shadow: 0 0 10px rgba(0,0,0,0.1);',
+        'w100': 'width: 100%;',
+        'h100': 'height: 100%;',
+      };
+
+      const value = el.value;
+      const words = value.split(/[\s;]+/);
+      const last = words[words.length - 1];
+
+      if (map[last]) {
+        el.value = value.replace(new RegExp(last + '$'), map[last]);
+      }
+    }
+  </script>
+
+</body>
+</html>
