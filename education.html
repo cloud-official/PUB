@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BEST "educational" VIDEOS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f2f2f7;
+    }
+    .header {
+      background: white;
+      padding: 15px;
+      font-size: 20px;
+      font-weight: bold;
+      border-bottom: 1px solid #ccc;
+    }
+    .network {
+      padding: 15px;
+      background: white;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .notification {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #28a745;
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">Available Networks</div>
+
+  <div class="network">
+    <span>https://rumble.com/embed/v5yrum2/?pub=4</span>
+    <button onclick="copyToClipboard('Home_WiFi_Password')">Copy</button>
+  </div>
+  <div class="network">
+    <span>https://rumble.com/embed/v6j6qu4/?pub=4</span>
+    <button onclick="copyToClipboard('Work_5G_Password')">Copy</button>
+  </div>
+  <div class="network">
+    <span>https://rumble.com/embed/v68xlna/?pub=4</span>
+    <button onclick="copyToClipboard('CoffeeShop_Guest_Password')">Copy</button>
+  </div>
+
+  <div id="notification" class="notification">COPIED! Now paste it on tixu cloud</div>
+
+  <script>
+    function copyToClipboard(password) {
+      // Create a temporary input element to copy the password
+      const input = document.createElement('input');
+      document.body.appendChild(input);
+      input.value = password;
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
+      
+      // Show the notification
+      showNotification();
+    }
+
+    function showNotification() {
+      const notification = document.getElementById('notification');
+      notification.style.display = 'block';
+      
+      // Hide notification after 3 seconds
+      setTimeout(() => {
+        notification.style.display = 'none';
+      }, 6000);
+    }
+  </script>
+
+</body>
+</html>
