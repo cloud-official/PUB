@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Google</title>
+  <title>Tixu Cloud PUB</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
     body {
@@ -51,7 +51,7 @@
       height: 500px;
       border: none;
       border-radius: 10px;
-      display: block;
+      display: none;
       margin-top: 20px;
     }
     .fullscreen-btn {
@@ -118,6 +118,58 @@
     .delete-btn:hover {
       background: darkred;
     }
+
+    /* Newton's Cradle Loader Styles */
+    .newtons-cradle {
+      --uib-size: 50px;
+      --uib-speed: 1.2s;
+      --uib-color: #474554;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--uib-size);
+      height: var(--uib-size);
+      margin: 20px auto;
+    }
+
+    .newtons-cradle__dot {
+      position: relative;
+      display: flex;
+      align-items: center;
+      height: 100%;
+      width: 25%;
+      transform-origin: center top;
+    }
+
+    .newtons-cradle__dot::after {
+      content: '';
+      display: block;
+      width: 100%;
+      height: 25%;
+      border-radius: 50%;
+      background-color: var(--uib-color);
+    }
+
+    .newtons-cradle__dot:first-child {
+      animation: swing var(--uib-speed) linear infinite;
+    }
+
+    .newtons-cradle__dot:last-child {
+      animation: swing2 var(--uib-speed) linear infinite;
+    }
+
+    @keyframes swing {
+      0% { transform: rotate(0deg); animation-timing-function: ease-out; }
+      25% { transform: rotate(70deg); animation-timing-function: ease-in; }
+      50% { transform: rotate(0deg); animation-timing-function: linear; }
+    }
+
+    @keyframes swing2 {
+      0% { transform: rotate(0deg); animation-timing-function: linear; }
+      50% { transform: rotate(0deg); animation-timing-function: ease-out; }
+      75% { transform: rotate(-70deg); animation-timing-function: ease-in; }
+    }
   </style>
 </head>
 <body>
@@ -137,6 +189,14 @@
 
     <iframe id="iframe" src=""></iframe>
 
+    <!-- Loader -->
+    <div id="loader" class="newtons-cradle" style="display: none;">
+      <div class="newtons-cradle__dot"></div>
+      <div class="newtons-cradle__dot"></div>
+      <div class="newtons-cradle__dot"></div>
+      <div class="newtons-cradle__dot"></div>
+    </div>
+
     <div class="supported">
       <h3>Supported Links:</h3>
       <ul>
@@ -145,7 +205,7 @@
         <li><button class="supported-link" data-query="Block Blast game"><i class="fas fa-cube"></i> Block Blast</button> – Block puzzle fun.</li>
         <li><button class="supported-link" data-query="mathgames66.github.io"><i class="fas fa-calculator"></i> Math Games</button> – Math games revamped...</li>
         <li><button class="supported-link" data-query="https://artclass-static.vercel.app/"><i class="fas fa-paint-brush"></i> Art class V2</button> – Artclass V2+.</li>
-        <li><button class="supported-link" data-query="chat.vercel.ai"><i class="fas fa-paint-brush"></i>AI</button> – AI chat.</li>
+        <li><button class="supported-link" data-query="chat.vercel.ai"><i class="fas fa-brain"></i> AI</button> – AI chat.</li>
       </ul>
     </div>
 
@@ -159,6 +219,7 @@
     const input = document.getElementById("input");
     const searchBtn = document.getElementById("searchBtn");
     const iframe = document.getElementById("iframe");
+    const loader = document.getElementById("loader");
     const fullscreenBtn = document.getElementById("fullscreenBtn");
     const historyList = document.getElementById("historyList");
 
@@ -170,25 +231,31 @@
 
       let url;
       if (isDirectUrl(trimmed)) {
-        // Add https:// if missing
         if (!/^https?:\/\//i.test(trimmed)) {
           trimmed = "https://" + trimmed;
         }
         url = trimmed;
       } else {
-        // Bing search if not a direct domain
         url = `https://www.bing.com/search?q=${encodeURIComponent(trimmed)}`;
       }
 
-      iframe.src = url;
+      // Show loader, hide iframe
+      iframe.style.display = "none";
+      loader.style.display = "flex";
 
-      // Save to history
-      let history = JSON.parse(localStorage.getItem('history')) || [];
-      if (!history.includes(trimmed)) {
-        history.push(trimmed);
-        localStorage.setItem('history', JSON.stringify(history));
-        renderHistory();
-      }
+      // Delay iframe loading by 3 seconds
+      setTimeout(() => {
+        loader.style.display = "none";
+        iframe.style.display = "block";
+        iframe.src = url;
+
+        let history = JSON.parse(localStorage.getItem('history')) || [];
+        if (!history.includes(trimmed)) {
+          history.push(trimmed);
+          localStorage.setItem('history', JSON.stringify(history));
+          renderHistory();
+        }
+      }, 3000);
     }
 
     function renderHistory() {
@@ -204,7 +271,6 @@
         historyList.appendChild(li);
       });
 
-      // Add event listeners to delete buttons
       document.querySelectorAll('.delete-btn').forEach(button => {
         button.addEventListener('click', (e) => {
           const index = e.target.dataset.index;
@@ -220,7 +286,6 @@
       renderHistory();
     }
 
-    // Fullscreen toggle
     fullscreenBtn.addEventListener('click', () => {
       if (document.fullscreenElement) {
         document.exitFullscreen();
@@ -242,7 +307,6 @@
       });
     });
 
-    // Render history on page load
     renderHistory();
   </script>
 </body>
