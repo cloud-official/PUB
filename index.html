@@ -90,36 +90,13 @@
       border-color: #007BFF;
       transform: translateY(-2px);
     }
-    .history {
-      margin-top: 30px;
-    }
-    .history ul {
-      list-style-type: none;
-      padding: 0;
-    }
-    .history-item {
-      background: #f1f1f1;
-      padding: 10px;
-      border-radius: 10px;
-      margin: 5px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-    .delete-btn {
-      background: red;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      padding: 5px 10px;
-      cursor: pointer;
-    }
-    .delete-btn:hover {
-      background: darkred;
-    }
 
-    /* Newton's Cradle Loader Styles */
+    /* Loader */
+    .loader-container {
+      display: none;
+      justify-content: center;
+      margin: 30px 0;
+    }
     .newtons-cradle {
       --uib-size: 50px;
       --uib-speed: 1.2s;
@@ -130,9 +107,7 @@
       justify-content: center;
       width: var(--uib-size);
       height: var(--uib-size);
-      margin: 20px auto;
     }
-
     .newtons-cradle__dot {
       position: relative;
       display: flex;
@@ -141,7 +116,6 @@
       width: 25%;
       transform-origin: center top;
     }
-
     .newtons-cradle__dot::after {
       content: '';
       display: block;
@@ -150,21 +124,17 @@
       border-radius: 50%;
       background-color: var(--uib-color);
     }
-
     .newtons-cradle__dot:first-child {
       animation: swing var(--uib-speed) linear infinite;
     }
-
     .newtons-cradle__dot:last-child {
       animation: swing2 var(--uib-speed) linear infinite;
     }
-
     @keyframes swing {
       0% { transform: rotate(0deg); animation-timing-function: ease-out; }
       25% { transform: rotate(70deg); animation-timing-function: ease-in; }
       50% { transform: rotate(0deg); animation-timing-function: linear; }
     }
-
     @keyframes swing2 {
       0% { transform: rotate(0deg); animation-timing-function: linear; }
       50% { transform: rotate(0deg); animation-timing-function: ease-out; }
@@ -187,31 +157,28 @@
       <button class="fullscreen-btn" id="fullscreenBtn"><i class="fas fa-expand"></i> Fullscreen</button>
     </div>
 
-    <iframe id="iframe" src=""></iframe>
-
-    <!-- Loader -->
-    <div id="loader" class="newtons-cradle" style="display: none;">
-      <div class="newtons-cradle__dot"></div>
-      <div class="newtons-cradle__dot"></div>
-      <div class="newtons-cradle__dot"></div>
-      <div class="newtons-cradle__dot"></div>
+    <!-- Loader Animation -->
+    <div class="loader-container" id="loader">
+      <div class="newtons-cradle">
+        <div class="newtons-cradle__dot"></div>
+        <div class="newtons-cradle__dot"></div>
+        <div class="newtons-cradle__dot"></div>
+        <div class="newtons-cradle__dot"></div>
+      </div>
     </div>
+
+    <iframe id="iframe" src=""></iframe>
 
     <div class="supported">
       <h3>Supported Links:</h3>
       <ul>
-        <li><button class="supported-link" data-query="https://sz-games.github.io"><i class="fas fa-gamepad"></i> SZ Games</button> – All games even "Roblox".</li>
-        <li><button class="supported-link" data-query="https://onlinegames.io"><i class="fas fa-globe"></i> Online Games</button> – All iframe games to search.</li>
-        <li><button class="supported-link" data-query="Block Blast game"><i class="fas fa-cube"></i> Block Blast</button> – Block puzzle fun.</li>
-        <li><button class="supported-link" data-query="mathgames66.github.io"><i class="fas fa-calculator"></i> Math Games</button> – Math games revamped...</li>
-        <li><button class="supported-link" data-query="https://artclass-static.vercel.app/"><i class="fas fa-paint-brush"></i> Art class V2</button> – Artclass V2+.</li>
-        <li><button class="supported-link" data-query="chat.vercel.ai"><i class="fas fa-brain"></i> AI</button> – AI chat.</li>
+        <li><button class="supported-link" data-query="https://sz-games.github.io"><i class="fas fa-gamepad"></i> SZ Games</button></li>
+        <li><button class="supported-link" data-query="https://onlinegames.io"><i class="fas fa-globe"></i> Online Games</button></li>
+        <li><button class="supported-link" data-query="Block Blast game"><i class="fas fa-cube"></i> Block Blast</button></li>
+        <li><button class="supported-link" data-query="mathgames66.github.io"><i class="fas fa-calculator"></i> Math Games</button></li>
+        <li><button class="supported-link" data-query="https://artclass-static.vercel.app/"><i class="fas fa-paint-brush"></i> Art class V2</button></li>
+        <li><button class="supported-link" data-query="chat.vercel.ai"><i class="fas fa-robot"></i> AI</button></li>
       </ul>
-    </div>
-
-    <div class="history">
-      <h3>Search History:</h3>
-      <ul id="historyList"></ul>
     </div>
   </div>
 
@@ -219,9 +186,8 @@
     const input = document.getElementById("input");
     const searchBtn = document.getElementById("searchBtn");
     const iframe = document.getElementById("iframe");
-    const loader = document.getElementById("loader");
     const fullscreenBtn = document.getElementById("fullscreenBtn");
-    const historyList = document.getElementById("historyList");
+    const loader = document.getElementById("loader");
 
     const isDirectUrl = str => /\.(com|net|org|io|vercel\.app|vercel\.ai|site|gov|edu|github\.io)(\/|$)/i.test(str);
 
@@ -239,51 +205,14 @@
         url = `https://www.bing.com/search?q=${encodeURIComponent(trimmed)}`;
       }
 
-      // Show loader, hide iframe
       iframe.style.display = "none";
       loader.style.display = "flex";
 
-      // Delay iframe loading by 3 seconds
       setTimeout(() => {
         loader.style.display = "none";
-        iframe.style.display = "block";
         iframe.src = url;
-
-        let history = JSON.parse(localStorage.getItem('history')) || [];
-        if (!history.includes(trimmed)) {
-          history.push(trimmed);
-          localStorage.setItem('history', JSON.stringify(history));
-          renderHistory();
-        }
+        iframe.style.display = "block";
       }, 3000);
-    }
-
-    function renderHistory() {
-      let history = JSON.parse(localStorage.getItem('history')) || [];
-      historyList.innerHTML = '';
-      history.forEach((item, index) => {
-        const li = document.createElement('li');
-        li.classList.add('history-item');
-        li.innerHTML = `
-          <span>${item}</span>
-          <button class="delete-btn" data-index="${index}"><i class="fas fa-trash"></i></button>
-        `;
-        historyList.appendChild(li);
-      });
-
-      document.querySelectorAll('.delete-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-          const index = e.target.dataset.index;
-          deleteHistoryItem(index);
-        });
-      });
-    }
-
-    function deleteHistoryItem(index) {
-      let history = JSON.parse(localStorage.getItem('history')) || [];
-      history.splice(index, 1);
-      localStorage.setItem('history', JSON.stringify(history));
-      renderHistory();
     }
 
     fullscreenBtn.addEventListener('click', () => {
@@ -306,8 +235,6 @@
         handleQuery(button.dataset.query);
       });
     });
-
-    renderHistory();
   </script>
 </body>
 </html>
