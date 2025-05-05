@@ -206,6 +206,31 @@
     .settings input[type="checkbox"] {
       transform: scale(1.3);
     }
+
+    #addWebsiteForm {
+      margin-top: 20px;
+    }
+
+    #addWebsiteForm input[type="text"] {
+      padding: 10px;
+      width: 80%;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    #addWebsiteForm button {
+      padding: 10px 15px;
+      border-radius: 8px;
+      border: 1px solid #007aff;
+      background-color: #007aff;
+      color: white;
+      cursor: pointer;
+    }
+
+    #addWebsiteForm button:hover {
+      background-color: #0051a8;
+    }
+
   </style>
 </head>
 <body>
@@ -234,14 +259,15 @@
 
     <div class="supported">
       <h3>Supported Links:</h3>
-      <ul>
-        <li><button class="supported-link" data-query="https://sz-games.github.io"><i class="fas fa-gamepad"></i> SZ Games</button></li>
-        <li><button class="supported-link" data-query="https://onlinegames.io"><i class="fas fa-globe"></i> Online Games</button></li>
-        <li><button class="supported-link" data-query="Block Blast game"><i class="fas fa-cube"></i> Block Blast</button></li>
-        <li><button class="supported-link" data-query="mathgames66.github.io"><i class="fas fa-calculator"></i> Math Games</button></li>
-        <li><button class="supported-link" data-query="https://artclass-static.vercel.app/"><i class="fas fa-paint-brush"></i> Art Class V2</button></li>
-        <li><button class="supported-link" data-query="chat.vercel.ai"><i class="fas fa-robot"></i> AI</button></li>
+      <ul id="supportedLinksList">
+        <!-- Dynamically populated list of supported links -->
       </ul>
+    </div>
+
+    <div id="addWebsiteForm">
+      <h3>Add a Custom Website</h3>
+      <input type="text" id="newWebsiteInput" placeholder="Enter URL to add..." />
+      <button id="addWebsiteBtn">Add Website</button>
     </div>
 
     <div class="settings">
@@ -265,8 +291,37 @@
     const fullscreenBtn = document.getElementById("fullscreenBtn");
     const enableNotifications = document.getElementById("enableNotifications");
     const darkMode = document.getElementById("darkMode");
+    const addWebsiteInput = document.getElementById("newWebsiteInput");
+    const addWebsiteBtn = document.getElementById("addWebsiteBtn");
+    const supportedLinksList = document.getElementById("supportedLinksList");
 
     const isDirectUrl = str => /\.(com|net|org|io|vercel\.app|vercel\.ai|site|gov|edu|github\.io)(\/|$)/i.test(str);
+
+    let supportedLinks = JSON.parse(localStorage.getItem("supportedLinks")) || [
+      { url: "https://sz-games.github.io", label: "SZ Games", icon: "fa-gamepad" },
+      { url: "https://onlinegames.io", label: "Online Games", icon: "fa-globe" },
+      { url: "Block Blast game", label: "Block Blast", icon: "fa-cube" },
+      { url: "mathgames66.github.io", label: "Math Games", icon: "fa-calculator" },
+      { url: "https://artclass-static.vercel.app/", label: "Art Class V2", icon: "fa-paint-brush" },
+      { url: "chat.vercel.ai", label: "AI", icon: "fa-robot" }
+    ];
+
+    function renderSupportedLinks() {
+      supportedLinksList.innerHTML = '';
+      supportedLinks.forEach(link => {
+        const li = document.createElement("li");
+        const button = document.createElement("button");
+        button.className = "supported-link";
+        button.dataset.query = link.url;
+        button.innerHTML = `<i class="fas ${link.icon}"></i> ${link.label}`;
+        button.addEventListener("click", () => {
+          input.value = link.url;
+          handleQuery(link.url);
+        });
+        li.appendChild(button);
+        supportedLinksList.appendChild(li);
+      });
+    }
 
     function handleQuery(query) {
       const trimmed = query.trim();
@@ -280,13 +335,11 @@
         if (isDirectUrl(trimmed)) {
           url = /^https?:\/\//i.test(trimmed) ? trimmed : "https://" + trimmed;
         } else {
-          url = `https://www.bing.com/search?q=${encodeURIComponent(trimmed)}`;
+          url = `https://www.google.com/search?q=${encodeURIComponent(trimmed)}`;
         }
-
         iframe.src = url;
         hideLoader();
-        showNotification("Search completed!", "success");
-      }, 3000);
+      }, 1500);
     }
 
     function showLoader() {
@@ -297,65 +350,57 @@
       loader.style.display = "none";
     }
 
-    function showNotification(message, type = "info") {
-      if (!enableNotifications.checked) return;
-
+    function showNotification(message, type = "success") {
       const notification = document.createElement("div");
-      notification.className = `notification ${type}`;
-      notification.textContent = message;
+      notification.classList.add("notification", type);
+      notification.innerText = message;
       document.body.appendChild(notification);
 
-      notification.addEventListener("click", () => {
-        notification.remove();
-      });
-
       setTimeout(() => {
-        if (notification.parentNode) {
-          notification.remove();
-        }
-      }, 3000);  // Hide after 3 seconds
+        notification.remove();
+      }, 3000);
     }
+
+    searchBtn.addEventListener("click", () => handleQuery(input.value));
 
     fullscreenBtn.addEventListener("click", () => {
       if (document.fullscreenElement) {
         document.exitFullscreen();
-        fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i> Fullscreen';
       } else {
-        iframe.requestFullscreen();
-        fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i> Exit Fullscreen';
+        document.documentElement.requestFullscreen();
       }
     });
 
-    searchBtn.addEventListener("click", () => {
-      handleQuery(input.value);
+    addWebsiteBtn.addEventListener("click", () => {
+      const newWebsite = addWebsiteInput.value.trim();
+      if (newWebsite && !supportedLinks.some(link => link.url === newWebsite)) {
+        const newLink = { url: newWebsite, label: `Custom Website`, icon: "fa-link" };
+        supportedLinks.push(newLink);
+        localStorage.setItem("supportedLinks", JSON.stringify(supportedLinks));
+        renderSupportedLinks();
+        addWebsiteInput.value = ''; // Clear the input
+        showNotification("Website added!", "success");
+      } else {
+        showNotification("Invalid URL or website already added", "error");
+      }
     });
 
-    document.querySelectorAll(".supported-link").forEach(button => {
-      button.addEventListener("click", () => {
-        input.value = button.dataset.query;
-        handleQuery(button.dataset.query);
-      });
+    enableNotifications.addEventListener("change", () => {
+      localStorage.setItem("notificationsEnabled", enableNotifications.checked);
     });
 
-    // Dark mode toggle
     darkMode.addEventListener("change", () => {
-      if (darkMode.checked) {
-        document.body.style.background = '#333';
-        document.body.style.color = '#f0f0f5';
-        document.querySelectorAll('.container, .supported-link, iframe').forEach(el => {
-          el.style.backgroundColor = '#222';
-          el.style.color = '#f0f0f5';
-        });
-      } else {
-        document.body.style.background = '#f0f0f5';
-        document.body.style.color = '#333';
-        document.querySelectorAll('.container, .supported-link, iframe').forEach(el => {
-          el.style.backgroundColor = '#fff';
-          el.style.color = '#333';
-        });
-      }
+      document.body.classList.toggle("dark-mode", darkMode.checked);
+      localStorage.setItem("darkModeEnabled", darkMode.checked);
     });
 
+    // Load supported links and dark mode preference
+    renderSupportedLinks();
+    darkMode.checked = JSON.parse(localStorage.getItem("darkModeEnabled") || "false");
+    enableNotifications.checked = JSON.parse(localStorage.getItem("notificationsEnabled") || "true");
+
+    // Load the query from the input
+    handleQuery(input.value);
   </script>
 </body>
 </html>
