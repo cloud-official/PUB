@@ -157,15 +157,18 @@
     const header = document.getElementById("header");
 
     let inactivityTimeout;
+    let visibilityChangeEnabled = true;  // Flag to toggle visibility change functionality
 
     // Function to reset the inactivity timer
     const resetInactivityTimer = () => {
-      clearTimeout(inactivityTimeout);
-      inactivityTimeout = setTimeout(() => {
-        document.body.classList.add('inactive');
-        header.style.display = "none";
-        container.style.display = "none";
-      }, 300); // 3 seconds of inactivity
+      if (visibilityChangeEnabled) {
+        clearTimeout(inactivityTimeout);
+        inactivityTimeout = setTimeout(() => {
+          document.body.classList.add('inactive');
+          header.style.display = "none";
+          container.style.display = "none";
+        }, 5000); // 5 seconds of inactivity for better user experience
+      }
     };
 
     // Add event listeners to detect user activity
@@ -246,15 +249,28 @@
     // Hide UI when tab inactive
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
-        document.body.classList.add('inactive');
-        header.style.display = "none";
-        container.style.display = "none";
+        if (visibilityChangeEnabled) {
+          document.body.classList.add('inactive');
+          header.style.display = "none";
+          container.style.display = "none";
+        }
       } else {
-        document.body.classList.remove('inactive');
-        setTimeout(() => {
-          header.style.display = "block";
-          container.style.display = "block";
-        }, 500); // 4-second delay to show content again
+        if (visibilityChangeEnabled) {
+          document.body.classList.remove('inactive');
+          setTimeout(() => {
+            header.style.display = "block";
+            container.style.display = "block";
+          }, 500); // 4-second delay to show content again
+        }
+      }
+    });
+
+    // Secret key combination to toggle visibility change
+    document.addEventListener("keydown", (e) => {
+      // Check if "Alt + 0" is pressed
+      if (e.altKey && e.key === "0") {
+        visibilityChangeEnabled = !visibilityChangeEnabled;
+        console.log(`Visibility change is now ${visibilityChangeEnabled ? "enabled" : "disabled"}`);
       }
     });
   </script>
