@@ -147,6 +147,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
+      min-width: 200px;
     }
 
     .notification.success {
@@ -275,6 +276,7 @@
         let url = trimmed;
         iframe.src = url;
         hideLoader();
+        showNotification("Search completed!", "success");
       }, 1500);
     }
 
