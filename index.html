@@ -117,6 +117,22 @@
       background-color: #33ff33;
       color: #1a1a1a;
     }
+
+    /* Notification Styles */
+    .notification {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #333;
+      color: #33ff33;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 1rem;
+      display: none;
+      z-index: 9999;
+    }
+
   </style>
 </head>
 <body>
@@ -148,6 +164,9 @@
     </div>
   </div>
 
+  <!-- Notification Element -->
+  <div id="notification" class="notification"></div>
+
   <script>
     const input = document.getElementById("input");
     const iframe = document.getElementById("iframe");
@@ -155,6 +174,7 @@
     const terminalText = document.getElementById("terminalText");
     const container = document.querySelector(".container");
     const header = document.getElementById("header");
+    const notification = document.getElementById("notification");
 
     let inactivityTimeout;
     let visibilityChangeEnabled = true;  // Flag to toggle visibility change functionality
@@ -270,9 +290,18 @@
       // Check if "Alt + 0" is pressed
       if (e.altKey && e.key === "0") {
         visibilityChangeEnabled = !visibilityChangeEnabled;
-        console.log(`Visibility change is now ${visibilityChangeEnabled ? "enabled" : "disabled"}`);
+        showNotification(`Visibility change is now ${visibilityChangeEnabled ? "enabled" : "disabled"}`);
       }
     });
+
+    // Function to show notification
+    function showNotification(message) {
+      notification.textContent = message;
+      notification.style.display = "block";
+      setTimeout(() => {
+        notification.style.display = "none";
+      }, 3000); // Hide after 3 seconds
+    }
   </script>
 </body>
 </html>
