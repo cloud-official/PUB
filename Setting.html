@@ -10,94 +10,214 @@
       font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       background: #f2f2f7;
     }
+
     .top-bar {
       background: white;
       padding: 15px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 10px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      flex-wrap: wrap;
     }
+
+    .back-button {
+      font-size: 17px;
+      color: #007aff;
+      background: none;
+      border: none;
+      padding: 0;
+      margin-right: auto;
+      cursor: pointer;
+    }
+
+    .back-button:hover {
+      text-decoration: underline;
+    }
+
     .top-bar input {
       flex: 1;
-      margin-right: 10px;
       padding: 8px 12px;
       border-radius: 10px;
       border: 1px solid #ccc;
       font-size: 16px;
     }
+
     .notification {
       width: 24px;
       height: 24px;
     }
+
     .section {
-      margin-top: 20px;
+      margin: 25px 0;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
+
     .setting-link {
       text-decoration: none;
     }
+
     .setting {
       display: flex;
       align-items: center;
       padding: 15px;
       background: white;
-      border-bottom: 1px solid #e0e0e0;
       transition: background 0.2s;
+      border-bottom: 1px solid #e0e0e0;
     }
+
+    .setting:last-child {
+      border-bottom: none;
+    }
+
     .setting:hover {
-      background: #e6e6ea;
+      background: #efeff2;
     }
+
     .setting img {
       width: 28px;
       height: 28px;
       margin-right: 15px;
       border-radius: 5px;
     }
+
     .setting span {
       font-size: 17px;
       color: #000;
+    }
+
+    .setting .toggle {
+      margin-left: auto;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 45px;
+      height: 26px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #4cd964;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(19px);
+    }
+
+    .hidden {
+      display: none;
     }
   </style>
 </head>
 <body>
 
   <div class="top-bar">
-    <input type="text" placeholder="Search">
-    <img src="https://img.icons8.com/ios-glyphs/30/000000/appointment-reminders.png" class="notification">
+    <button class="back-button" onclick="window.location.href='https://cloud-official.github.io/PUB/'">‹ Back</button>
+    <input type="text" id="searchInput" placeholder="Search settings...">
+    <img src="https://img.icons8.com/ios-glyphs/30/000000/appointment-reminders.png" class="notification" />
   </div>
 
+  <!-- Section 1: Connectivity -->
+  <div class="section" id="settingsList">
+    <div class="setting" data-name="wifi">
+      <img src="https://img.icons8.com/fluency/48/000000/wifi.png" />
+      <span>Wi-Fi</span>
+      <label class="toggle switch">
+        <input type="checkbox" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="setting" data-name="bluetooth">
+      <img src="https://img.icons8.com/color/48/000000/bluetooth.png" />
+      <span>Bluetooth</span>
+      <label class="toggle switch">
+        <input type="checkbox">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Section 2: System -->
   <div class="section">
-    <a href="/WiFi.html" class="setting-link">
-      <div class="setting">
-        <img src="https://img.icons8.com/fluency/48/000000/wifi.png" />
-        <span>Wi-Fi</span>
-      </div>
-    </a>
-    <a href="/Bluetooth.html" class="setting-link">
-      <div class="setting">
-        <img src="https://img.icons8.com/color/48/000000/bluetooth.png" />
-        <span>Bluetooth</span>
-      </div>
-    </a>
     <a href="/Focus.html" class="setting-link">
-      <div class="setting">
+      <div class="setting" data-name="focus">
         <img src="https://img.icons8.com/color/48/000000/moon-symbol.png" />
         <span>Focus</span>
       </div>
     </a>
     <a href="/General.html" class="setting-link">
-      <div class="setting">
+      <div class="setting" data-name="general">
         <img src="https://img.icons8.com/color/48/000000/gear.png" />
         <span>General</span>
       </div>
     </a>
+  </div>
+
+  <!-- Section 3: External -->
+  <div class="section">
     <a href="https://cloud-official.github.io/PUB/education.html" class="setting-link">
-      <div class="setting">
+      <div class="setting" data-name="education">
         <img src="https://img.icons8.com/?size=100&id=58145&format=png" />
         <span>"education" videos</span>
       </div>
     </a>
   </div>
+
+  <script>
+    const searchInput = document.getElementById("searchInput");
+    const settings = document.querySelectorAll(".setting");
+
+    searchInput.addEventListener("input", () => {
+      const query = searchInput.value.toLowerCase();
+      settings.forEach(setting => {
+        const label = setting.textContent.toLowerCase();
+        if (label.includes(query)) {
+          setting.classList.remove("hidden");
+        } else {
+          setting.classList.add("hidden");
+        }
+      });
+    });
+  </script>
 
 </body>
 </html>
