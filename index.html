@@ -226,24 +226,22 @@
     const supportedLinksList = document.getElementById("supportedLinksList");
 
     const supportedLinks = [
-  { url: "https://sz-games.github.io", label: "SZ Games", icon: "fa-gamepad" },
-  { url: "https://gamehtml5.github.io/", label: "Game HTML5", icon: "fa-th" },
-  { url: "https://nb-ga.github.io/games-site/", label: "NB Games", icon: "fa-cubes" },
-  { url: "https://samleo8.github.io/games/index.html", label: "SamLeo Games", icon: "fa-puzzle-piece" },
-  { url: "https://pippinbarr.github.io/games/", label: "Pippin Barr Games", icon: "fa-joystick" },
-  { url: "https://famobigames.github.io/famobi.com/girls/index7038.html?locale=en", label: "Famobi Girls Games", icon: "fa-female" },
-  { url: "https://thetoonsofjosh.github.io/games/", label: "PBS Kids Games", icon: "fa-child" },
-  { url: "https://ubg98.github.io/", label: "UBG98 Unblocked", icon: "fa-unlock" },
-  { url: "https://gabrielecirulli.github.io/2048/", label: "2048 Original", icon: "fa-th-large" },
-  { url: "https://html5-games.github.io/", label: "HTML5 Game Dev Group", icon: "fa-code" },
-  { url: "https://billybobgames.github.io/other/", label: "Billy Bob Games", icon: "fa-gamepad" },
-  { url: "https://gazeplay.github.io/GazePlay/games/", label: "GazePlay", icon: "fa-eye" },
-  { url: "https://html-online-game.github.io/", label: "HTML Online Game", icon: "fa-running" },
-  { url: "https://mksmpc.github.io/", label: "MKS HTML5 Games", icon: "fa-gamepad" },
-  { url: "https://unblockedgames200.github.io/", label: "Unblocked Games 200", icon: "fa-unlock-alt" }
-];
-
-
+      { url: "https://sz-games.github.io", label: "SZ Games", icon: "fa-gamepad" },
+      { url: "https://gamehtml5.github.io/", label: "Game HTML5", icon: "fa-th" },
+      { url: "https://nb-ga.github.io/games-site/", label: "NB Games", icon: "fa-cubes" },
+      { url: "https://samleo8.github.io/games/index.html", label: "SamLeo Games", icon: "fa-puzzle-piece" },
+      { url: "https://pippinbarr.github.io/games/", label: "Pippin Barr Games", icon: "fa-joystick" },
+      { url: "https://famobigames.github.io/famobi.com/girls/index7038.html?locale=en", label: "Famobi Girls Games", icon: "fa-female" },
+      { url: "https://thetoonsofjosh.github.io/games/", label: "PBS Kids Games", icon: "fa-child" },
+      { url: "https://ubg98.github.io/", label: "UBG98 Unblocked", icon: "fa-unlock" },
+      { url: "https://gabrielecirulli.github.io/2048/", label: "2048 Original", icon: "fa-th-large" },
+      { url: "https://html5-games.github.io/", label: "HTML5 Game Dev Group", icon: "fa-code" },
+      { url: "https://billybobgames.github.io/other/", label: "Billy Bob Games", icon: "fa-gamepad" },
+      { url: "https://gazeplay.github.io/GazePlay/games/", label: "GazePlay", icon: "fa-eye" },
+      { url: "https://html-online-game.github.io/", label: "HTML Online Game", icon: "fa-running" },
+      { url: "https://mksmpc.github.io/", label: "MKS HTML5 Games", icon: "fa-gamepad" },
+      { url: "https://unblockedgames200.github.io/", label: "Unblocked Games 200", icon: "fa-unlock-alt" }
+    ];
 
     function renderSupportedLinks() {
       supportedLinksList.innerHTML = '';
@@ -311,12 +309,14 @@
     searchBtn.addEventListener("click", () => handleQuery(input.value));
 
     fullscreenBtn.addEventListener("click", () => {
-      if (document.fullscreenElement) {
-        document.exitFullscreen();
-        fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i> Fullscreen';
-      } else {
-        document.documentElement.requestFullscreen();
-        fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i> Exit Fullscreen';
+      if (iframe.requestFullscreen) {
+        if (document.fullscreenElement) {
+          document.exitFullscreen();
+          fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i> Fullscreen';
+        } else {
+          iframe.requestFullscreen();
+          fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i> Exit Fullscreen';
+        }
       }
     });
 
