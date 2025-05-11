@@ -1,37 +1,74 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8">
-  <title>settings</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Settings</title>
+  <meta name="color-scheme" content="light dark" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
+    :root {
+      --bg-color: #f2f2f7;
+      --text-color: #000;
+      --card-color: #fff;
+      --accent-color: #007aff;
+      --border-color: #e0e0e0;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #1c1c1e;
+      --text-color: #fff;
+      --card-color: #2c2c2e;
+      --accent-color: #0a84ff;
+      --border-color: #3a3a3c;
+    }
+
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #f2f2f7;
+      background-color: var(--bg-color);
+      color: var(--text-color);
     }
 
+    /* MacOS-style chrome */
+    .mac-chrome {
+      height: 38px;
+      background-color: var(--card-color);
+      display: flex;
+      align-items: center;
+      padding: 0 15px;
+      border-bottom: 1px solid var(--border-color);
+      gap: 8px;
+    }
+
+    .mac-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-red { background-color: #ff5f56; }
+    .dot-yellow { background-color: #ffbd2e; }
+    .dot-green { background-color: #27c93f; }
+
+    /* Top bar */
     .top-bar {
-      background: white;
-      padding: 15px;
+      background-color: var(--card-color);
+      padding: 12px 15px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      position: sticky;
-      top: 0;
-      z-index: 10;
       flex-wrap: wrap;
+      gap: 10px;
+      border-bottom: 1px solid var(--border-color);
     }
 
     .back-button {
-      font-size: 17px;
-      color: #007aff;
+      font-size: 16px;
+      color: var(--accent-color);
       background: none;
       border: none;
-      padding: 0;
-      margin-right: auto;
       cursor: pointer;
     }
 
@@ -43,19 +80,22 @@
       flex: 1;
       padding: 8px 12px;
       border-radius: 10px;
-      border: 1px solid #ccc;
-      font-size: 16px;
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-color);
+      color: var(--text-color);
     }
 
-    .notification {
-      width: 24px;
-      height: 24px;
+    .top-bar i {
+      font-size: 18px;
+      color: var(--accent-color);
+      cursor: pointer;
     }
 
+    /* Section layout */
     .section {
-      margin: 25px 0;
-      background: white;
-      border-radius: 10px;
+      margin: 20px;
+      background-color: var(--card-color);
+      border-radius: 12px;
       overflow: hidden;
       box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
@@ -68,9 +108,7 @@
       display: flex;
       align-items: center;
       padding: 15px;
-      background: white;
-      transition: background 0.2s;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid var(--border-color);
     }
 
     .setting:last-child {
@@ -78,22 +116,25 @@
     }
 
     .setting:hover {
-      background: #efeff2;
+      background-color: #efeff2;
     }
 
-    .setting img {
-      width: 28px;
-      height: 28px;
+    [data-theme="dark"] .setting:hover {
+      background-color: #2a2a2a;
+    }
+
+    .setting i {
+      font-size: 20px;
       margin-right: 15px;
-      border-radius: 5px;
+      color: var(--accent-color);
     }
 
     .setting span {
-      font-size: 17px;
-      color: #000;
+      flex-grow: 1;
+      font-size: 16px;
     }
 
-    .setting .toggle {
+    .toggle {
       margin-left: auto;
     }
 
@@ -113,10 +154,7 @@
     .slider {
       position: absolute;
       cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      top: 0; left: 0; right: 0; bottom: 0;
       background-color: #ccc;
       transition: 0.4s;
       border-radius: 34px;
@@ -149,45 +187,70 @@
 </head>
 <body>
 
-  <div class="top-bar">
-    <button class="back-button" onclick="window.location.href='https://cloud-official.github.io/PUB/'">‹ Back</button>
-    <input type="text" id="searchInput" placeholder="Search settings...">
-    <img src="https://img.icons8.com/ios-glyphs/30/000000/appointment-reminders.png" class="notification" />
+  <!-- MacOS chrome bar -->
+  <div class="mac-chrome">
+    <span class="mac-dot dot-red"></span>
+    <span class="mac-dot dot-yellow"></span>
+    <span class="mac-dot dot-green"></span>
   </div>
 
-  <!-- Section 1: Connectivity -->
+  <!-- Top bar with search and theme -->
+  <div class="top-bar">
+    <button class="back-button" onclick="window.location.href='https://cloud-official.github.io/PUB/'">‹ Back</button>
+    <input type="text" id="searchInput" placeholder="Search settings..." />
+    <i class="fas fa-bell" title="Notifications"></i>
+    <i class="fas fa-adjust" title="Toggle Theme" id="themeToggle"></i>
+  </div>
+
+  <!-- Settings List -->
   <div class="section" id="settingsList">
-    <div class="setting" data-name="wifi">
-      <img src="https://img.icons8.com/?size=100&id=70942&format=png" />
-      <span>Dark mode</span>
+    <div class="setting" data-name="dark mode">
+      <i class="fas fa-moon"></i>
+      <span>Dark Mode</span>
       <label class="toggle switch">
-        <input type="checkbox" checked>
+        <input type="checkbox" id="darkModeToggle">
         <span class="slider"></span>
       </label>
     </div>
+    <div class="setting" data-name="notifications">
+      <i class="fas fa-bell"></i>
+      <span>Notifications</span>
+      <label class="toggle switch">
+        <input type="checkbox" id="notificationsToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="setting" data-name="auto updates">
+      <i class="fas fa-sync-alt"></i>
+      <span>Auto Updates</span>
+      <label class="toggle switch">
+        <input type="checkbox" id="updatesToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
 
-  <!-- Section 2: System -->
+  <!-- Links -->
   <div class="section">
     <a href="https://cloud-official.github.io/PUB/Launcher.html" class="setting-link">
-      <div class="setting" data-name="focus">
-        <img src="https://img.icons8.com/?size=128&id=jN2K21U7CjAP&format=png" />
-        <span>code launcher</span>
+      <div class="setting" data-name="code launcher">
+        <i class="fas fa-rocket"></i>
+        <span>Code Launcher</span>
       </div>
     </a>
     <a href="https://cloud-official.github.io/PUB/Blooket.html" class="setting-link">
-      <div class="setting" data-name="general">
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-B0DMe26NVPzs4yA_vGBetpiLW_EcmTeqgLbeSnbIIg&s=10" />
-        <span>blooket menu</span>
+      <div class="setting" data-name="blooket menu">
+        <i class="fas fa-gamepad"></i>
+        <span>Blooket Menu</span>
       </div>
     </a>
   </div>
 
-  <!-- Section 3: External -->
   <div class="section">
     <a href="https://cloud-official.github.io/PUB/education.html" class="setting-link">
-      <div class="setting" data-name="education">
-        <img src="https://img.icons8.com/?size=100&id=58145&format=png" />
-        <span>"education" videos</span>
+      <div class="setting" data-name="education videos">
+        <i class="fas fa-book"></i>
+        <span>Education Videos</span>
       </div>
     </a>
   </div>
@@ -195,19 +258,42 @@
   <script>
     const searchInput = document.getElementById("searchInput");
     const settings = document.querySelectorAll(".setting");
+    const darkModeToggle = document.getElementById("darkModeToggle");
+    const themeToggle = document.getElementById("themeToggle");
 
+    // Search
     searchInput.addEventListener("input", () => {
       const query = searchInput.value.toLowerCase();
       settings.forEach(setting => {
         const label = setting.textContent.toLowerCase();
-        if (label.includes(query)) {
-          setting.classList.remove("hidden");
-        } else {
-          setting.classList.add("hidden");
-        }
+        setting.classList.toggle("hidden", !label.includes(query));
       });
     });
-  </script>
 
+    function setTheme(mode) {
+      document.documentElement.setAttribute('data-theme', mode);
+      localStorage.setItem('theme', mode);
+      darkModeToggle.checked = (mode === 'dark');
+    }
+
+    // Load theme
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      setTheme(savedTheme);
+    } else {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setTheme(prefersDark ? 'dark' : 'light');
+    }
+
+    // Theme toggles
+    darkModeToggle.addEventListener('change', () => {
+      setTheme(darkModeToggle.checked ? 'dark' : 'light');
+    });
+
+    themeToggle.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      setTheme(current === 'dark' ? 'light' : 'dark');
+    });
+  </script>
 </body>
 </html>
