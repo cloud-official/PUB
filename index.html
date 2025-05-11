@@ -6,31 +6,68 @@
   <title>Tixu Cloud PUB</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
+    :root {
+      --bg-color: #d1d1d6;
+      --text-color: #1c1c1e;
+      --button-bg: #0a84ff;
+      --button-hover: #0050f0;
+      --mac-bg: #e5e5ea;
+      --mac-button-close: #ff5f57;
+      --mac-button-minimize: #ffbd2e;
+      --mac-button-maximize: #28c840;
+      --tab-bar-bg: #f2f2f7;
+      --tab-bar-hover: #e0e0e5;
+      --tab-bar-active-bg: white;
+      --tab-bar-active-border: #0a84ff;
+      --input-bg: #f9f9fa;
+      --input-border: #ccc;
+      --input-border-radius: 8px;
+      --iframe-height: 100vh;
+      --notification-bg: #0a84ff;
+      --notification-text-color: white;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #2d2d30;
+      --text-color: #e1e1e1;
+      --mac-bg: #444;
+      --button-bg: #0a84ff;
+      --button-hover: #0050f0;
+      --tab-bar-bg: #333;
+      --tab-bar-hover: #444;
+      --tab-bar-active-bg: #444;
+      --tab-bar-active-border: #0a84ff;
+      --input-bg: #555;
+      --input-border: #888;
+      --iframe-height: 100vh;
+      --notification-bg: #ff5f57;
+    }
+
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-      background: #d1d1d6;
-      color: #1c1c1e;
+      background: var(--bg-color);
+      color: var(--text-color);
       height: 100vh;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
     .draggable-window {
-      position: absolute;
-      top: 40px;
-      left: 50%;
-      transform: translateX(-50%);
-      max-width: 960px;
-      width: 90%;
+      width: 100%;
+      height: 100%;
       background: #fff;
       border-radius: 14px;
       box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
       overflow: hidden;
       z-index: 10;
+      display: flex;
+      flex-direction: column;
     }
 
     .mac-window-bar {
-      background: #e5e5ea;
+      background: var(--mac-bg);
       display: flex;
       align-items: center;
       padding: 8px 12px;
@@ -51,9 +88,9 @@
       display: inline-block;
     }
 
-    .close { background: #ff5f57; }
-    .minimize { background: #ffbd2e; }
-    .maximize { background: #28c840; }
+    .close { background: var(--mac-button-close); }
+    .minimize { background: var(--mac-button-minimize); }
+    .maximize { background: var(--mac-button-maximize); }
 
     .mac-title {
       flex: 1;
@@ -65,7 +102,7 @@
 
     .tab-bar {
       display: flex;
-      background: #f2f2f7;
+      background: var(--tab-bar-bg);
       border-bottom: 1px solid #ccc;
     }
 
@@ -79,33 +116,33 @@
     }
 
     .tab-bar div:hover {
-      background: #e0e0e5;
+      background: var(--tab-bar-hover);
     }
 
     .tab-bar .active {
-      background: white;
-      border-bottom: 2px solid #0a84ff;
+      background: var(--tab-bar-active-bg);
+      border-bottom: 2px solid var(--tab-bar-active-border);
     }
 
     .address-bar {
       display: flex;
       padding: 10px;
       border-bottom: 1px solid #ccc;
-      background: #f9f9fa;
+      background: var(--input-bg);
     }
 
     #input {
       flex: 1;
       padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+      border: 1px solid var(--input-border);
+      border-radius: var(--input-border-radius);
       margin-right: 10px;
       font-size: 14px;
     }
 
     #searchBtn {
       padding: 10px 16px;
-      background: #0a84ff;
+      background: var(--button-bg);
       border: none;
       color: white;
       font-size: 14px;
@@ -115,7 +152,7 @@
 
     iframe {
       width: 100%;
-      height: 500px;
+      height: var(--iframe-height);
       border: none;
       display: block;
     }
@@ -123,7 +160,7 @@
     .fullscreen-btn, .settings-btn {
       padding: 10px 16px;
       margin: 10px;
-      background: #1c1c1e;
+      background: var(--button-bg);
       color: white;
       border: none;
       border-radius: 8px;
@@ -131,7 +168,7 @@
     }
 
     .fullscreen-btn:hover, .settings-btn:hover {
-      background: #0a84ff;
+      background: var(--button-hover);
     }
 
     .supported ul {
@@ -143,7 +180,7 @@
     }
 
     .supported-link {
-      background: #f2f2f7;
+      background: var(--tab-bar-bg);
       padding: 12px;
       border: 1px solid #ccc;
       border-radius: 10px;
@@ -153,17 +190,17 @@
     }
 
     .supported-link:hover {
-      background: #0a84ff;
+      background: var(--button-bg);
       color: white;
-      border-color: #0a84ff;
+      border-color: var(--button-bg);
     }
 
     .notification {
       position: fixed;
       top: 20px;
       left: 20px;
-      background: #0a84ff;
-      color: white;
+      background: var(--notification-bg);
+      color: var(--notification-text-color);
       padding: 12px 20px;
       border-radius: 8px;
       z-index: 9999;
@@ -256,69 +293,26 @@
       });
     }
 
-    function isValidUrl(string) {
-      try { new URL(string); return true; } catch (_) { return false; }
+    function handleQuery(url) {
+      iframe.src = url;
+      input.value = url;
     }
 
-    function handleQuery(query) {
-      const trimmed = query.trim();
-      if (!trimmed) return;
-      let finalUrl = trimmed;
-      if (!isValidUrl(trimmed) || !trimmed.includes(".")) {
-        finalUrl = `https://www.bing.com/search?q=${encodeURIComponent(trimmed)}`;
-      } else if (!/^https?:\/\//i.test(trimmed)) {
-        finalUrl = '!' + trimmed;
-      }
-      iframe.src = finalUrl;
-      showNotification("Search completed!", "success");
-    }
+    searchBtn.addEventListener('click', () => handleQuery(input.value));
 
-    function showNotification(message, type = "info") {
-      const notification = document.createElement("div");
-      notification.className = `notification ${type}`;
-      notification.innerHTML = `<i class="fas fa-info-circle"></i> ${message}`;
-      document.body.appendChild(notification);
-      setTimeout(() => notification.remove(), 3000);
-    }
-
-    searchBtn.addEventListener("click", () => handleQuery(input.value));
-
-    fullscreenBtn.addEventListener("click", () => {
+    fullscreenBtn.addEventListener('click', () => {
       if (iframe.requestFullscreen) {
-        if (document.fullscreenElement) {
-          document.exitFullscreen();
-          fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i> Fullscreen';
-        } else {
-          iframe.requestFullscreen();
-          fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i> Exit Fullscreen';
-        }
+        iframe.requestFullscreen();
+      } else if (iframe.mozRequestFullScreen) {
+        iframe.mozRequestFullScreen();
+      } else if (iframe.webkitRequestFullscreen) {
+        iframe.webkitRequestFullscreen();
+      } else if (iframe.msRequestFullscreen) {
+        iframe.msRequestFullscreen();
       }
     });
 
     renderSupportedLinks();
-
-    const windowBar = document.querySelector('.mac-window-bar');
-    const draggable = document.querySelector('.draggable-window');
-
-    let isDragging = false;
-    let offset = { x: 0, y: 0 };
-
-    windowBar.addEventListener('mousedown', e => {
-      isDragging = true;
-      offset.x = e.clientX - draggable.offsetLeft;
-      offset.y = e.clientY - draggable.offsetTop;
-    });
-
-    document.addEventListener('mousemove', e => {
-      if (isDragging) {
-        draggable.style.left = `${e.clientX - offset.x}px`;
-        draggable.style.top = `${e.clientY - offset.y}px`;
-      }
-    });
-
-    document.addEventListener('mouseup', () => {
-      isDragging = false;
-    });
   </script>
 </body>
 </html>
