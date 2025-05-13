@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>macOS-style Snowfall Stress Test</title>
+  <style>
+    /* Basic Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* Body */
+    body {
+      background: #f5f5f7;  /* macOS-like light background */
+      color: #333;          /* Dark text for contrast */
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+      text-align: center;
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 600;
+      color: #333;
+      margin: 30px 0;
+      z-index: 1000;
+    }
+
+    p {
+      color: #777;
+      font-size: 1rem;
+      margin: 10px 0;
+      z-index: 1000;
+    }
+
+    /* Settings Form */
+    .settings-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255, 255, 255, 0.9);  /* Slight transparency for a cleaner look */
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      display: inline-block;
+      text-align: left;
+      z-index: 9999;
+    }
+
+    label {
+      font-size: 1rem;
+      color: #333;
+      margin-right: 10px;
+    }
+
+    input[type="number"] {
+      padding: 8px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      width: 60px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      background-color: #007aff;  /* macOS blue */
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      padding: 12px 25px;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #0051a8;  /* Darker blue on hover */
+    }
+
+    /* Snowfall Dots (macOS-inspired) */
+    .snowflake {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: #fff;  /* Snow-like color */
+      border-radius: 50%;
+      animation: fall linear infinite, drift ease-in-out infinite;
+      opacity: 0.9;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    @keyframes fall {
+      0% {
+        top: -10px; /* Start slightly above the screen */
+      }
+      100% {
+        top: 100vh; /* End at the bottom of the screen */
+      }
+    }
+
+    @keyframes drift {
+      0% {
+        transform: translateX(0);
+      }
+      50% {
+        transform: translateX(30px);
+      }
+      100% {
+        transform: translateX(-30px);
+      }
+    }
+
+    /* Fullscreen button */
+    .fullscreen-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: rgba(0, 122, 255, 0.9);
+      color: white;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      z-index: 1000;
+    }
+
+    .fullscreen-btn:hover {
+      background-color: #0051a8;
+    }
+
+    /* Responsive for smaller screens */
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 2rem;
+      }
+
+      .settings-container {
+        width: 90%;
+        padding: 15px;
+      }
+
+      button {
+        padding: 10px 20px;
+      }
+
+      input[type="number"] {
+        width: 50px;
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+  <h1>macOS-style Snowfall Stress Test</h1>
+  <p>Customize the settings to test browser performance.</p>
+  
+  <!-- Fullscreen button -->
+  <button class="fullscreen-btn" onclick="toggleFullscreen()">Go Fullscreen</button>
+
+  <!-- Settings Form -->
+  <div class="settings-container">
+    <label for="numSnowflakes">Number of Snowflakes: </label>
+    <input type="number" id="numSnowflakes" value="20" min="1" max="1000" /> 
+    <br />
+
+    <label for="fallSpeed">Fall Speed (seconds): </label>
+    <input type="number" id="fallSpeed" value="5" min="1" max="20" /> 
+    <br />
+
+    <label for="driftSpeed">Drift Speed (seconds): </label>
+    <input type="number" id="driftSpeed" value="10" min="5" max="20" />
+    <br />
+
+    <button onclick="updateSettings()">Apply Settings</button>
+  </div>
+
+  <script>
+    // Default settings
+    let settings = {
+      numSnowflakes: 20,
+      fallSpeed: 5,
+      driftSpeed: 10,
+    };
+
+    // Update settings from inputs
+    function updateSettings() {
+      settings.numSnowflakes = parseInt(document.getElementById('numSnowflakes').value);
+      settings.fallSpeed = parseInt(document.getElementById('fallSpeed').value);
+      settings.driftSpeed = parseInt(document.getElementById('driftSpeed').value);
+
+      // Clear all snowflakes
+      const snowflakes = document.querySelectorAll('.snowflake');
+      snowflakes.forEach(snowflake => snowflake.remove());
+
+      createSnowflakes();
+    }
+
+    // Create snowflakes based on settings
+    function createSnowflake() {
+      const snowflake = document.createElement('div');
+      snowflake.classList.add('snowflake');
+      snowflake.style.animationDuration = `${settings.fallSpeed + Math.random() * 2}s`;  // Randomize fall speed for variation
+      snowflake.style.animationDelay = `${Math.random() * 5}s`; // Randomize delay for variation
+      snowflake.style.left = Math.random() * window.innerWidth + 'px'; // Random horizontal position
+
+      document.body.appendChild(snowflake);
+
+      // Remove snowflake after it finishes its animation
+      setTimeout(() => {
+        snowflake.remove();
+      }, (settings.fallSpeed + Math.random() * 2) * 1000);
+    }
+
+    // Start creating snowflakes based on settings
+    function startSnowfall() {
+      for (let i = 0; i < settings.numSnowflakes; i++) {
+        createSnowflake();
+      }
+      setTimeout(startSnowfall, 100); // Continuously generate snowflakes
+    }
+
+    // Start snowfall on load
+    window.onload = startSnowfall;
+
+    // Toggle Fullscreen
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+  </script>
+
+</body>
+</html>
