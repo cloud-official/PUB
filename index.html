@@ -242,13 +242,11 @@
 
     <iframe id="iframe" src=""></iframe>
 
-    <div style="display: flex; justify-content: center; flex-wrap: wrap;">
+    <div style="display: flex; justify-content: center;">
       <button class="fullscreen-btn" id="fullscreenBtn"><i class="fas fa-expand"></i> Fullscreen</button>
-      <button class="settings-btn" id="toggleTheme"><i class="fas fa-adjust"></i> Toggle Theme</button>
       <button class="settings-btn" onclick="window.location.href='https://cloud-official.github.io/PUB/Setting.html'">
         <i class="fas fa-cog"></i> Settings
       </button>
-      <button class="settings-btn" id="clearData"><i class="fas fa-trash-alt"></i> Clear Data</button>
     </div>
 
     <div class="supported">
@@ -263,69 +261,45 @@
     const iframe = document.getElementById("iframe");
     const fullscreenBtn = document.getElementById("fullscreenBtn");
     const supportedLinksList = document.getElementById("supportedLinksList");
-    const themeToggleBtn = document.getElementById("toggleTheme");
 
-    // ---------------- Cookies ----------------
-    function setCookie(name, value, days = 7) {
-      const expires = new Date(Date.now() + days * 864e5).toUTCString();
-      document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
-    }
+    const supportedLinks = [
+    { url: "https://sz-games.github.io", label: "SZ Games", icon: "fa-gamepad" },
+    { url: "https://gamehtml5.github.io/", label: "Game HTML5", icon: "fa-th" },
+    { url: "https://nb-ga.github.io/games-site/", label: "NB Games", icon: "fa-cubes" },
+    { url: "https://samleo8.github.io/games/index.html", label: "SamLeo Games", icon: "fa-puzzle-piece" },
+    { url: "https://pippinbarr.github.io/games/", label: "Pippin Barr Games", icon: "fa-joystick" },
+    { url: "https://famobigames.github.io/famobi.com/girls/index7038.html?locale=en", label: "Famobi Girls Games", icon: "fa-female" },
+    { url: "https://thetoonsofjosh.github.io/games/", label: "PBS Kids Games", icon: "fa-child" },
+    { url: "https://ubg98.github.io/", label: "UBG98 Unblocked", icon: "fa-unlock" },
+    { url: "https://gabrielecirulli.github.io/2048/", label: "2048 Original", icon: "fa-th-large" },
+    { url: "https://html5-games.github.io/", label: "HTML5 Game Dev Group", icon: "fa-code" },
+    { url: "https://billybobgames.github.io/other/", label: "Billy Bob Games", icon: "fa-gamepad" },
+    { url: "https://gazeplay.github.io/GazePlay/games/", label: "GazePlay", icon: "fa-eye" },
+    { url: "https://html-online-game.github.io/", label: "HTML Online Game", icon: "fa-running" },
+    { url: "https://mksmpc.github.io/", label: "MKS HTML5 Games", icon: "fa-gamepad" },
+    { url: "https://unblockedgames200.github.io/", label: "Unblocked Games 200", icon: "fa-unlock-alt" },
+    { url: "https://embulbled.github.io/", label: "Embulbled Games", icon: "fa-gamepad" },
+    { url: "https://blockygames.github.io/", label: "Blocky Games", icon: "fa-cubes" },
+    { url: "https://js-games.github.io/", label: "JS Games", icon: "fa-cogs" },
+    { url: "https://coolgames.github.io/", label: "Cool Games", icon: "fa-sun" },
+    { url: "https://randomgamehub.github.io/", label: "Random Game Hub", icon: "fa-random" },
+    { url: "https://html5arcade.github.io/", label: "HTML5 Arcade", icon: "fa-trophy" },
+    { url: "https://html5gamejam.github.io/", label: "HTML5 Game Jam", icon: "fa-flag-checkered" },
+    { url: "https://classicgames.github.io/", label: "Classic Games", icon: "fa-archive" },
+    { url: "https://tinygames.github.io/", label: "Tiny Games", icon: "fa-compress" },
+    { url: "https://freehtml5games.github.io/", label: "Free HTML5 Games", icon: "fa-share" },
+    { url: "https://retro-games.github.io/", label: "Retro Games", icon: "fa-retweet" },
+    { url: "https://casualgames.github.io/", label: "Casual Games", icon: "fa-puzzle-piece" },
+    { url: "https://webarcade.github.io/", label: "Web Arcade", icon: "fa-gamepad" },
+    { url: "https://pixelgames.github.io/", label: "Pixel Games", icon: "fa-pixel" },
+    { url: "https://fastarcade.github.io/", label: "Fast Arcade", icon: "fa-bolt" },
+    { url: "https://playnow.github.io/", label: "Play Now", icon: "fa-play-circle" },
+    { url: "https://multigamehub.github.io/", label: "MultiGame Hub", icon: "fa-users" },
+    { url: "https://gamevault.github.io/", label: "Game Vault", icon: "fa-vault" },
+    { url: "https://funarcade.github.io/", label: "Fun Arcade", icon: "fa-laugh" }
+];
 
-    function getCookie(name) {
-      return document.cookie.split('; ').reduce((r, v) => {
-        const parts = v.split('=');
-        return parts[0] === name ? decodeURIComponent(parts[1]) : r;
-      }, '');
-    }
 
-    // Track visits
-    let visits = parseInt(getCookie("visits") || "0");
-    visits++;
-    setCookie("visits", visits);
-    console.log(`Visit count: ${visits}`);
-
-    // ---------------- Theme ----------------
-    document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
-    themeToggleBtn.addEventListener('click', () => {
-      const currentTheme = document.documentElement.getAttribute('data-theme');
-      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', newTheme);
-      localStorage.setItem('theme', newTheme);
-    });
-
-    // ---------------- Search & Load URL ----------------
-    function handleQuery(url) {
-      iframe.src = url;
-      input.value = url;
-      localStorage.setItem('lastURL', url);
-    }
-
-    searchBtn.addEventListener('click', () => handleQuery(input.value));
-    fullscreenBtn.addEventListener('click', () => {
-      if (iframe.requestFullscreen) iframe.requestFullscreen();
-      else if (iframe.webkitRequestFullscreen) iframe.webkitRequestFullscreen();
-      else if (iframe.msRequestFullscreen) iframe.msRequestFullscreen();
-    });
-
-    // ---------------- Load last URL ----------------
-    window.addEventListener('load', () => {
-      const lastURL = localStorage.getItem('lastURL');
-      if (lastURL) handleQuery(lastURL);
-    });
-
-    // ---------------- Clear Data ----------------
-    document.getElementById("clearData").addEventListener("click", () => {
-      localStorage.clear();
-      document.cookie.split(";").forEach(cookie => {
-        document.cookie = cookie
-          .replace(/^ +/, "")
-          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-      });
-      alert("Local data and cookies cleared.");
-    });
-
-    // ---------------- Supported Links ----------------
-    const supportedLinks = [ /* your original links array */ ];
     function renderSupportedLinks() {
       supportedLinksList.innerHTML = '';
       supportedLinks.forEach(link => {
@@ -338,6 +312,25 @@
         supportedLinksList.appendChild(li);
       });
     }
+
+    function handleQuery(url) {
+      iframe.src = url;
+      input.value = url;
+    }
+
+    searchBtn.addEventListener('click', () => handleQuery(input.value));
+
+    fullscreenBtn.addEventListener('click', () => {
+      if (iframe.requestFullscreen) {
+        iframe.requestFullscreen();
+      } else if (iframe.mozRequestFullScreen) {
+        iframe.mozRequestFullScreen();
+      } else if (iframe.webkitRequestFullscreen) {
+        iframe.webkitRequestFullscreen();
+      } else if (iframe.msRequestFullscreen) {
+        iframe.msRequestFullscreen();
+      }
+    });
 
     renderSupportedLinks();
   </script>
