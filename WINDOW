@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windows 11 Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            user-select: none;
+        }
+        
+        .window {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            resize: both;
+            min-width: 300px;
+            min-height: 200px;
+        }
+        
+        .window.maximized {
+            width: 100% !important;
+            height: calc(100% - 48px) !important;
+            top: 0 !important;
+            left: 0 !important;
+            resize: none;
+            border-radius: 0;
+        }
+        
+        .window-header {
+            height: 32px;
+            cursor: move;
+        }
+        
+        .desktop-icon {
+            width: 80px;
+            text-align: center;
+            padding: 8px;
+            border-radius: 5px;
+            transition: all 0.1s ease;
+        }
+        
+        .desktop-icon:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .desktop-icon:active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .taskbar-icon {
+            padding: 8px 12px;
+            border-radius: 5px;
+            transition: all 0.1s ease;
+        }
+        
+        .taskbar-icon:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .taskbar-icon.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .start-menu {
+            height: 600px;
+            width: 500px;
+            bottom: 48px;
+            left: 0;
+            transform: translateY(100%);
+            transition: transform 0.2s ease;
+        }
+        
+        .start-menu.open {
+            transform: translateY(0);
+        }
+        
+        .search-bar {
+            backdrop-filter: blur(40px);
+        }
+        
+        .app-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            transition: all 0.1s ease;
+        }
+        
+        .app-icon:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-[#0078d4] h-screen w-screen overflow-hidden font-segoe-ui">
+    <!-- Desktop Icons -->
+    <div class="absolute top-0 left-0 w-full h-[calc(100%-48px)] p-4 grid grid-cols-1 gap-4 content-start">
+        <div class="desktop-icon text-white cursor-pointer" onclick="openApp('explorer')">
+            <div class="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center mx-auto mb-1">
+                <i class="fas fa-folder text-2xl text-blue-300"></i>
+            </div>
+            <div class="text-xs text-white truncate">File Explorer</div>
+        </div>
+        <div class="desktop-icon text-white cursor-pointer" onclick="openApp('edge')">
+            <div class="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center mx-auto mb-1">
+                <i class="fab fa-edge text-2xl text-blue-300"></i>
+            </div>
+            <div class="text-xs text-white truncate">Microsoft Edge</div>
+        </div>
+        <div class="desktop-icon text-white cursor-pointer" onclick="openApp('store')">
+            <div class="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center mx-auto mb-1">
+                <i class="fas fa-store text-2xl text-blue-300"></i>
+            </div>
+            <div class="text-xs text-white truncate">Microsoft Store</div>
+        </div>
+    </div>
+    
+    <!-- Taskbar -->
+    <div class="absolute bottom-0 left-0 w-full h-12 bg-gray-900/80 backdrop-blur-md flex items-center px-2 z-50">
+        <div class="taskbar-icon text-white cursor-pointer" id="start-button" onclick="toggleStartMenu()">
+            <i class="fab fa-windows text-xl"></i>
+        </div>
+        <div class="taskbar-icon text-white cursor-pointer" onclick="openApp('search')">
+            <i class="fas fa-search text-lg"></i>
+        </div>
+        <div class="taskbar-icon text-white cursor-pointer" onclick="openApp('explorer')">
+            <i class="fas fa-folder text-lg"></i>
+        </div>
+        <div class="taskbar-icon text-white cursor-pointer" onclick="openApp('edge')">
+            <i class="fab fa-edge text-lg"></i>
+        </div>
+        <div class="taskbar-icon text-white cursor-pointer" onclick="openApp('store')">
+            <i class="fas fa-store text-lg"></i>
+        </div>
+        <div class="ml-auto h-full flex items-center px-2 text-white text-xs">
+            <div class="text-right mr-2">
+                <div id="time">10:45 AM</div>
+                <div id="date">5/15/2023</div>
+            </div>
+            <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                <i class="fas fa-user text-xs"></i>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Start Menu -->
+    <div class="absolute start-menu bg-gray-900/80 backdrop-blur-md rounded-lg overflow-hidden z-40" id="start-menu">
+        <div class="h-full flex">
+            <!-- Left Side -->
+            <div class="w-16 bg-gray-900/50 flex flex-col items-center py-4">
+                <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center mb-4">
+                    <i class="fas fa-user text-white text-xl"></i>
+                </div>
+                <div class="w-12 h-12 rounded-lg flex items-center justify-center mb-4 hover:bg-white/10 cursor-pointer">
+                    <i class="fas fa-cog text-white text-xl"></i>
+                </div>
+                <div class="w-12 h-12 rounded-lg flex items-center justify-center mb-4 hover:bg-white/10 cursor-pointer">
+                    <i class="fas fa-power-off text-white text-xl"></i>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="flex-1 p-4 overflow-y-auto">
+                <div class="search-bar bg-white/10 rounded-lg h-10 flex items-center px-4 mb-6">
+                    <i class="fas fa-search text-white/70 mr-2"></i>
+                    <input type="text" placeholder="Type here to search" class="bg-transparent border-none outline-none text-white placeholder-white/70 w-full">
+                </div>
+                
+                <h2 class="text-white text-lg font-semibold mb-4">Pinned</h2>
+                <div class="grid grid-cols-6 gap-4 mb-8">
+                    <div class="app-icon flex flex-col items-center justify-center cursor-pointer" onclick="openApp('edge')">
+                        <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mb-1">
+                            <i class="fab fa-edge text-white text-lg"></i>
+                        </div>
+                        <div class="text-xs text-white text-center">Edge</div>
+                    </div>
+                    <div class="app-icon flex flex-col items-center justify-center cursor-pointer" onclick="openApp('explorer')">
+                        <div class="w-10 h-10 bg-blue-400 rounded-lg flex items-center justify-center mb-1">
+                            <i class="fas fa-folder text-white text-lg"></i>
+                        </div>
+                        <div class="text-xs text-white text-center">Explorer</div>
+                    </div>
+                    <div class="app-icon flex flex-col items-center justify-center cursor-pointer" onclick="openApp('store')">
+                        <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mb-1">
+                            <i class="fas fa-store text-white text-lg"></i>
+                        </div>
+                        <div class="text-xs text-white text-center">Store</div>
+                    </div>
+                    <div class="app-icon flex flex-col items-center justify-center cursor-pointer" onclick="openApp('settings')">
+                        <div class="w-10 h-10 bg-gray-500 rounded-lg flex items-center justify-center mb-1">
+                            <i class="fas fa-cog text-white text-lg"></i>
+                        </div>
+                        <div class="text-xs text-white text-center">Settings</div>
+                    </div>
+                    <div class="app-icon flex flex-col items-center justify-center cursor-pointer" onclick="openApp('photos')">
+                        <div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center mb-1">
+                            <i class="fas fa-images text-white text-lg"></i>
+                        </div>
+                        <div class="text-xs text-white text-center">Photos</div>
+                    </div>
+                    <div class="app-icon flex flex-col items-center justify-center cursor-pointer" onclick="openApp('calculator')">
+                        <div class="w-10 h-10 bg-teal-500 rounded-lg flex items-center justify-center mb-1">
+                            <i class="fas fa-calculator text-white text-lg"></i>
+                        </div>
+                        <div class="text-xs text-white text-center">Calculator</div>
+                    </div>
+                </div>
+                
+                <h2 class="text-white text-lg font-semibold mb-4">Recommended</h2>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-white/5 rounded-lg p-3 flex items-center cursor-pointer hover:bg-white/10">
+                        <div class="w-10 h-10 bg-blue-400 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-file-word text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-white text-sm">Document.docx</div>
+                            <div class="text-white/50 text-xs">Modified today</div>
+                        </div>
+                    </div>
+                    <div class="bg-white/5 rounded-lg p-3 flex items-center cursor-pointer hover:bg-white/10">
+                        <div class="w-10 h-10 bg-green-400 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-file-excel text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-white text-sm">Budget.xlsx</div>
+                            <div class="text-white/50 text-xs">Modified yesterday</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Windows -->
+    <div id="windows-container"></div>
+    
+    <!-- File Explorer Window Template -->
+    <div class="window absolute hidden bg-gray-100" id="explorer-window">
+        <div class="window-header bg-gray-200 flex items-center justify-between px-3">
+            <div class="flex items-center">
+                <i class="fas fa-folder text-gray-600 mr-2"></i>
+                <span class="text-sm font-medium">File Explorer</span>
+            </div>
+            <div class="flex items-center">
+                <button class="w-10 h-10 flex items-center justify-center hover:bg-gray-300" onclick="minimizeWindow('explorer')">
+                    <i class="fas fa-minus text-gray-600"></i>
+                </button>
+                <button class="w-10 h-10 flex items-center justify-center hover:bg-gray-300" onclick="toggleMaximizeWindow('explorer')">
+                    <i class="fas fa-square text-gray-600"></i>
+                </button>
+                <button class="w-10 h-10 flex items-center justify-center hover:bg-red-500 hover:text-white" onclick="closeWindow('explorer')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="flex h-[calc(100%-32px)]">
+            <div class="w-48 bg-gray-200 border-r border-gray-300 p-2">
+                <div class="text-xs font-medium text-gray-600 mb-2">Quick access</div>
+                <div class="flex items-center py-1 px-2 rounded hover:bg-gray-300 cursor-pointer">
+                    <i class="fas fa-desktop text-gray-600 mr-2 text-sm"></i>
+                    <span class="text-sm">Desktop</span>
+                </div>
+                <div class="flex items-center py-1 px-2 rounded hover:bg-gray-300 cursor-pointer">
+                    <i class="fas fa-download text-gray-600 mr-2 text-sm"></i>
+                    <span class="text-sm">Downloads</span>
+                </div>
+                <div class="flex items-center py-1 px-2 rounded hover:bg-gray-300 cursor-pointer">
+                    <i class="fas fa-image text-gray-600 mr-2 text-sm"></i>
+                    <span class="text-sm">Pictures</span>
+                </div>
+            </div>
+            <div class="flex-1 p-4 overflow-auto">
+                <div class="grid grid-cols-5 gap-4">
+                    <div class="flex flex-col items-center cursor-pointer">
+                        <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mb-1">
+                            <i class="fas fa-folder text-blue-500 text-2xl"></i>
+                        </div>
+                        <div class="text-xs text-center">Documents</div>
+                    </div>
+                    <div class="flex flex-col items-center cursor-pointer">
+                        <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mb-1">
+                            <i class="fas fa-folder text-blue-500 text-2xl"></i>
+                        </div>
+                        <div class="text-xs text-center">Pictures</div>
+                    </div>
+                    <div class="flex flex-col items-center cursor-pointer">
+                        <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mb-1">
+                            <i class="fas fa-folder text-blue-500 text-2xl"></i>
+                        </div>
+                        <div class="text-xs text-center">Music</div>
+                    </div>
+                    <div class="flex flex-col items-center cursor-pointer">
+                        <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mb-1">
+                            <i class="fas fa-folder text-blue-500 text-2xl"></i>
+                        </div>
+                        <div class="text-xs text-center">Videos</div>
+                    </div>
+                    <div class="flex flex-col items-center cursor-pointer">
+                        <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mb-1">
+                            <i class="fas fa-file text-blue-500 text-2xl"></i>
+                        </div>
+                        <div class="text-xs text-center">Document.docx</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Microsoft Edge Window Template -->
+    <div class="window absolute hidden bg-white" id="edge-window">
+        <div class="window-header bg-gray-200 flex items-center justify-between px-3">
+            <div class="flex items-center">
+                <i class="fab fa-edge text-blue-600 mr-2"></i>
+                <span class="text-sm font-medium">Microsoft Edge</span>
+            </div>
+            <div class="flex items-center">
+                <button class="w-10 h-10 flex items-center justify-center hover:bg-gray-300" onclick="minimizeWindow('edge')">
+                    <i class="fas fa-minus text-gray-600"></i>
+                </button>
+                <button class="w-10 h-10 flex items-center justify-center hover:bg-gray-300" onclick="toggleMaximizeWindow('edge')">
+                    <i class="fas fa-square text-gray-600"></i>
+                </button>
+                <button class="w-10 h-10 flex items-center justify-center hover:bg-red-500 hover:text-white" onclick="closeWindow('edge')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="h-10 bg-gray-100 flex items-center px-2 border-b">
+            <div class="flex items-center w-full bg-white rounded-lg px-3 py-1">
+                <i class="fas fa-search text-gray-500 mr-2"></i>
+                <input type="text" value="https://www.bing.com" class="w-full outline-none text-sm">
+            </div>
+        </div>
+        <div class="h-[calc(100%-72px)] p-4 overflow-auto">
+            <div class="text-center mt-20">
+                <img src="https://www.bing.com/sa/simg/bing_p_rr_teal_min.ico" alt="Bing" class="w-20 h-20 mx-auto mb-4">
+                <div class="relative w-1/2 mx-auto">
+                    <input type="text" placeholder="Search the web" class="w-full px-4 py-2 rounded-full border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-500 text-white rounded-full p-1">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Microsoft Store Window Template -->
+    <div class="window absolute hidden bg-white" id="store-window">
+        <div class="window-header bg-gray-200 flex items-center justify-between px-3">
+            <div class="flex items-center">
+                <i class="fas fa-store text-blue-600 mr-2"></i>
+                <span class="text-sm font-medium">Microsoft Store</span>
+            </div>
+            <div class="flex items-center">
+                <button class="w-10 h-10 flex items-center justify-center hover:bg-gray-300" onclick="minimizeWindow('store')">
+                    <i class="fas fa-minus text-gray-600"></i>
+                </button>
+                <button class="w-10 h-10 flex items-center justify-center hover:bg-gray-300" onclick="toggleMaximizeWindow('store')">
+                    <i class="fas fa-square text-gray-600"></i>
+                </button>
+                <button class="w-10 h-10 flex items-center justify-center hover:bg-red-500 hover:text-white" onclick="closeWindow('store')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="h-10 bg-gray-100 flex items-center px-4 border-b">
+            <div class="flex space-x-4">
+                <button class="text-sm font-medium hover:text-blue-600">Home</button>
+                <button class="text-sm font-medium hover:text-blue-600">Apps</button>
+                <button class="text-sm font-medium hover:text-blue-600">Games</button>
+                <button class="text-sm font-medium hover:text-blue-600">Movies & TV</button>
+            </div>
+        </div>
+        <div class="h-[calc(100%-72px)] p-4 overflow-auto">
+            <h2 class="text-xl font-bold mb-4">Featured apps</h2>
+            <div class="grid grid-cols-4 gap-4 mb-8">
+                <div class="bg-gray-100 rounded-lg p-4 cursor-pointer hover:shadow-md">
+                    <div class="w-full h-32 bg-blue-100 rounded-lg mb-2 flex items-center justify-center">
+                        <i class="fas fa-camera text-blue-500 text-3xl"></i>
+                    </div>
+                    <h3 class="font-medium">Photos</h3>
+                    <p class="text-xs text-gray-500">Microsoft Corporation</p>
+                </div>
+                <div class="bg-gray-100 rounded-lg p-4 cursor-pointer hover:shadow-md">
+                    <div class="w-full h-32 bg-green-100 rounded-lg mb-2 flex items-center justify-center">
+                        <i class="fas fa-music text-green-500 text-3xl"></i>
+                    </div>
+                    <h3 class="font-medium">Spotify</h3>
+                    <p class="text-xs text-gray-500">Spotify AB</p>
+                </div>
+                <div class="bg-gray-100 rounded-lg p-4 cursor-pointer hover:shadow-md">
+                    <div class="w-full h-32 bg-purple-100 rounded-lg mb-2 flex items-center justify-center">
+                        <i class="fas fa-film text-purple-500 text-3xl"></i>
+                    </div>
+                    <h3 class="font-medium">Netflix</h3>
+                    <p class="text-xs text-gray-500">Netflix, Inc.</p>
+                </div>
+                <div class="bg-gray-100 rounded-lg p-4 cursor-pointer hover:shadow-md">
+                    <div class="w-full h-32 bg-red-100 rounded-lg mb-2 flex items-center justify-center">
+                        <i class="fas fa-gamepad text-red-500 text-3xl"></i>
+                    </div>
+                    <h3 class="font-medium">Minecraft</h3>
+                    <p class="text-xs text-gray-500">Mojang</p>
+                </div>
+            </div>
+            
+            <h2 class="text-xl font-bold mb-4">Top free games</h2>
+            <div class="grid grid-cols-4 gap-4">
+                <div class="bg-gray-100 rounded-lg p-4 cursor-pointer hover:shadow-md">
+                    <div class="w-full h-32 bg-blue-100 rounded-lg mb-2 flex items-center justify-center">
+                        <i class="fas fa-chess text-blue-500 text-3xl"></i>
+                    </div>
+                    <h3 class="font-medium">Chess</h3>
+                    <p class="text-xs text-gray-500">Microsoft Corporation</p>
+                </div>
+                <div class="bg-gray-100 rounded-lg p-4 cursor-pointer hover:shadow-md">
+                    <div class="w-full h-32 bg-green-100 rounded-lg mb-2 flex items-center justify-center">
+                        <i class="fas fa-dice text-green-500 text-3xl"></i>
+                    </div>
+                    <h3 class="font-medium">Solitaire</h3>
+                    <p class="text-xs text-gray-500">Microsoft Corporation</p>
+                </div>
+                <div class="bg-gray-100 rounded-lg p-4 cursor-pointer hover:shadow-md">
+                    <div class="w-full h-32 bg-purple-100 rounded-lg mb-2 flex items-center justify-center">
+                        <i class="fas fa-puzzle-piece text-purple-500 text-3xl"></i>
+                    </div>
+                    <h3 class="font-medium">Mahjong</h3>
+                    <p class="text-xs text-gray-500">Microsoft Corporation</p>
+                </div>
+                <div class="bg-gray-100 rounded-lg p-4 cursor-pointer hover:shadow-md">
+                    <div class="w-full h-32 bg-red-100 rounded-lg mb-2 flex items-center justify-center">
+                        <i class="fas fa-flag text-red-500 text-3xl"></i>
+                    </div>
+                    <h3 class="font-medium">Minesweeper</h3>
+                    <p class="text-xs text-gray-500">Microsoft Corporation</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Update time and date
+        function updateClock() {
+            const now = new Date();
+            const timeElement = document.getElementById('time');
+            const dateElement = document.getElementById('date');
+            
+            let hours = now.getHours();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            
+            timeElement.textContent = `${hours}:${minutes} ${ampm}`;
+            
+            const month = now.getMonth() + 1;
+            const day = now.getDate();
+            const year = now.getFullYear();
+            dateElement.textContent = `${month}/${day}/${year}`;
+        }
+        
+        setInterval(updateClock, 1000);
+        updateClock();
+        
+        // Start menu toggle
+        function toggleStartMenu() {
+            const startMenu = document.getElementById('start-menu');
+            startMenu.classList.toggle('open');
+            
+            // Close if clicking outside
+            if (startMenu.classList.contains('open')) {
+                setTimeout(() => {
+                    document.addEventListener('click', closeStartMenuOutside);
+                }, 10);
+            } else {
+                document.removeEventListener('click', closeStartMenuOutside);
+            }
+        }
+        
+        function closeStartMenuOutside(e) {
+            const startMenu = document.getElementById('start-menu');
+            const startButton = document.getElementById('start-button');
+            
+            if (!startMenu.contains(e.target) && !startButton.contains(e.target)) {
+                startMenu.classList.remove('open');
+                document.removeEventListener('click', closeStartMenuOutside);
+            }
+        }
+        
+        // Window management
+        let zIndex = 1;
+        const openWindows = {};
+        
+        function openApp(appName) {
+            // Close start menu if open
+            document.getElementById('start-menu').classList.remove('open');
+            
+            // If window already exists, bring to front
+            if (openWindows[appName]) {
+                bringToFront(appName);
+                return;
+            }
+            
+            // Create new window
+            const template = document.getElementById(`${appName}-window`);
+            const newWindow = template.cloneNode(true);
+            newWindow.id = `${appName}-window-instance`;
+            newWindow.classList.remove('hidden');
+            newWindow.style.zIndex = zIndex++;
+            
+            // Position window
+            const windowWidth = 800;
+            const windowHeight = 600;
+            const left = (window.innerWidth - windowWidth) / 2;
+            const top = (window.innerHeight - windowHeight) / 3;
+            
+            newWindow.style.width = `${windowWidth}px`;
+            newWindow.style.height = `${windowHeight}px`;
+            newWindow.style.left = `${left}px`;
+            newWindow.style.top = `${top}px`;
+            
+            // Make draggable
+            const header = newWindow.querySelector('.window-header');
+            header.addEventListener('mousedown', (e) => {
+                bringToFront(appName);
+                
+                let posX = e.clientX;
+                let posY = e.clientY;
+                
+                function moveWindow(e) {
+                    const dx = e.clientX - posX;
+                    const dy = e.clientY - posY;
+                    
+                    newWindow.style.left = `${parseInt(newWindow.style.left) + dx}px`;
+                    newWindow.style.top = `${parseInt(newWindow.style.top) + dy}px`;
+                    
+                    posX = e.clientX;
+                    posY = e.clientY;
+                }
+                
+                function stopMoving() {
+                    document.removeEventListener('mousemove', moveWindow);
+                    document.removeEventListener('mouseup', stopMoving);
+                }
+                
+                document.addEventListener('mousemove', moveWindow);
+                document.addEventListener('mouseup', stopMoving);
+            });
+            
+            // Add to DOM and tracking
+            document.getElementById('windows-container').appendChild(newWindow);
+            openWindows[appName] = newWindow;
+            
+            // Update taskbar icon
+            const taskbarIcon = document.querySelector(`.taskbar-icon:nth-child(${getTaskbarIndex(appName)})`);
+            if (taskbarIcon) {
+                taskbarIcon.classList.add('active');
+            }
+        }
+        
+        function closeWindow(appName) {
+            const window = openWindows[appName];
+            if (window) {
+                window.remove();
+                delete openWindows[appName];
+                
+                // Update taskbar icon
+                const taskbarIcon = document.querySelector(`.taskbar-icon:nth-child(${getTaskbarIndex(appName)})`);
+                if (taskbarIcon) {
+                    taskbarIcon.classList.remove('active');
+                }
+            }
+        }
+        
+        function minimizeWindow(appName) {
+            const window = openWindows[appName];
+            if (window) {
+                window.classList.add('hidden');
+                
+                // Update taskbar icon
+                const taskbarIcon = document.querySelector(`.taskbar-icon:nth-child(${getTaskbarIndex(appName)})`);
+                if (taskbarIcon) {
+                    taskbarIcon.classList.remove('active');
+                }
+            }
+        }
+        
+        function toggleMaximizeWindow(appName) {
+            const window = openWindows[appName];
+            if (window) {
+                window.classList.toggle('maximized');
+                
+                const maximizeBtn = window.querySelector('.window-header button:nth-child(2)');
+                if (window.classList.contains('maximized')) {
+                    maximizeBtn.innerHTML = '<i class="fas fa-clone text-gray-600"></i>';
+                } else {
+                    maximizeBtn.innerHTML = '<i class="fas fa-square text-gray-600"></i>';
+                }
+            }
+        }
+        
+        function bringToFront(appName) {
+            const window = openWindows[appName];
+            if (window) {
+                window.style.zIndex = zIndex++;
+                window.classList.remove('hidden');
+                
+                // Update taskbar icon
+                const taskbarIcon = document.querySelector(`.taskbar-icon:nth-child(${getTaskbarIndex(appName)})`);
+                if (taskbarIcon) {
+                    document.querySelectorAll('.taskbar-icon').forEach(icon => {
+                        icon.classList.remove('active');
+                    });
+                    taskbarIcon.classList.add('active');
+                }
+            }
+        }
+        
+        function getTaskbarIndex(appName) {
+            const appIndices = {
+                'explorer': 3,
+                'edge': 4,
+                'store': 5
+            };
+            return appIndices[appName] || 0;
+        }
+        
+        // Make desktop icons selectable
+        document.querySelectorAll('.desktop-icon').forEach(icon => {
+            icon.addEventListener('click', function(e) {
+                if (e.detail === 2) { // Double click
+                    const appName = this.getAttribute('onclick').match(/openApp\('(.*)'\)/)[1];
+                    openApp(appName);
+                }
+            });
+        });
+        
+        // Make taskbar icons clickable
+        document.querySelectorAll('.taskbar-icon').forEach((icon, index) => {
+            if (index > 1) { // Skip start and search buttons
+                icon.addEventListener('click', function() {
+                    const appName = this.getAttribute('onclick').match(/openApp\('(.*)'\)/)[1];
+                    if (openWindows[appName]) {
+                        if (openWindows[appName].classList.contains('hidden')) {
+                            bringToFront(appName);
+                        } else {
+                            minimizeWindow(appName);
+                        }
+                    } else {
+                        openApp(appName);
+                    }
+                });
+            }
+        });
+    </script>
