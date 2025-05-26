@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOOGLE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sakura: {
+                            100: '#fff0f6',
+                            200: '#ffd6e7',
+                            300: '#ffadd2',
+                            400: '#ff85c1',
+                            500: '#ff5a9f',
+                            600: '#e64980',
+                            700: '#cc3377',
+                            800: '#99004d',
+                        }
+                    },
+                    fontFamily: {
+                        'japanese': ['"Noto Sans JP"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #fff0f6;
+            transition: background-color 0.3s ease;
+        }
+        
+        .dark body {
+            background-color: #1a1a1a;
+        }
+        
+        .sakura-bg {
+            background-image: url('https://i.imgur.com/X3wjlhA.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            opacity: 0.15;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .dark .glass-card {
+            background: rgba(30, 30, 30, 0.85);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .notification {
+            animation: slideIn 0.5s forwards, fadeOut 0.5s 3s forwards;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        
+        @keyframes fadeOut {
+            to { opacity: 0; }
+        }
+        
+        .loading-bar {
+            animation: loading 2s infinite;
+        }
+        
+        @keyframes loading {
+            0% { width: 0%; }
+            50% { width: 50%; }
+            100% { width: 100%; }
+        }
+        
+        .cherry-blossom {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: url('https://i.imgur.com/5z3rVdS.png') no-repeat;
+            background-size: contain;
+            animation: falling linear infinite;
+            z-index: -1;
+        }
+        
+        @keyframes falling {
+            0% { transform: translate(0, -10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translate(calc(var(--random-x) * 15vw), 100vh) rotate(360deg); opacity: 0; }
+        }
+        
+        .torii-gate {
+            position: relative;
+            height: 80px;
+            width: 120px;
+            margin: 0 auto;
+        }
+        
+        .torii-gate::before, .torii-gate::after {
+            content: '';
+            position: absolute;
+            background-color: #e64980;
+        }
+        
+        .torii-gate::before {
+            height: 80px;
+            width: 12px;
+            left: 0;
+        }
+        
+        .torii-gate::after {
+            height: 80px;
+            width: 12px;
+            right: 0;
+        }
+        
+        .torii-top {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background-color: #e64980;
+            z-index: 1;
+        }
+        
+        .torii-crossbar {
+            position: absolute;
+            top: 30px;
+            left: 0;
+            right: 0;
+            height: 12px;
+            background-color: #e64980;
+            z-index: 2;
+        }
+        
+        .japanese-text {
+            font-family: 'Noto Sans JP', sans-serif;
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            letter-spacing: 5px;
+        }
+        
+        .tab-active {
+            border-bottom: 3px solid #e64980;
+            color: #e64980;
+        }
+        
+        .history-item:hover {
+            background-color: rgba(230, 73, 128, 0.1);
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(230, 73, 128, 0.5);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(230, 73, 128, 0.7);
+        }
+        
+        .dark ::-webkit-scrollbar-track {
+            background: rgba(30, 30, 30, 0.5);
+        }
+        
+        .dark ::-webkit-scrollbar-thumb {
+            background: rgba(230, 73, 128, 0.3);
+        }
+        
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: rgba(230, 73, 128, 0.5);
+        }
+    </style>
+</head>
+<body class="font-japanese min-h-screen relative overflow-x-hidden">
+    <!-- Background elements -->
+    <div class="sakura-bg"></div>
+    <div id="petals-container"></div>
+    
+    <!-- Notifications Container -->
+    <div class="fixed top-4 right-4 z-50 space-y-2" id="notifications"></div>
+    
+    <!-- Language Toggle -->
+    <div class="fixed bottom-4 left-4 z-40">
+        <button id="lang-toggle" class="glass-card p-2 rounded-full shadow-md hover:bg-sakura-200 dark:hover:bg-gray-700 transition">
+            <span class="text-sm font-medium">EN/日本語</span>
+        </button>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <header class="flex flex-col items-center mb-8">
+                <div class="torii-gate mb-4">
+                    <div class="torii-top"></div>
+                    <div class="torii-crossbar"></div>
+                </div>
+                <div class="glass-card px-6 py-4 flex items-center justify-between w-full">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-mountain-sun text-3xl text-sakura-600"></i>
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Sakura Proxy</h1>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">安全なブラウジング - Secure Browsing</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button id="history-btn" class="p-2 rounded-full hover:bg-sakura-200 dark:hover:bg-gray-700 transition relative group">
+                            <i class="fas fa-history text-gray-600 dark:text-gray-300"></i>
+                            <span class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-sakura-500 rounded-full opacity-0 group-hover:opacity-100 transition"></span>
+                        </button>
+                        <button id="theme-toggle" class="p-2 rounded-full hover:bg-sakura-200 dark:hover:bg-gray-700 transition">
+                            <i class="fas fa-moon text-gray-600 dark:text-yellow-300"></i>
+                        </button>
+                        <button id="notif-btn" class="p-2 rounded-full hover:bg-sakura-200 dark:hover:bg-gray-700 transition relative">
+                            <i class="fas fa-bell text-gray-600 dark:text-gray-300"></i>
+                            <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Main Card -->
+            <div class="glass-card p-6 mb-6">
+                <!-- Tabs -->
+                <div class="flex border-b border-gray-200 dark:border-gray-700 mb-6">
+                    <button class="tab-btn py-2 px-4 font-medium text-gray-600 dark:text-gray-300 tab-active" data-tab="proxy">
+                        <i class="fas fa-globe mr-2"></i>Proxy
+                    </button>
+                    <button class="tab-btn py-2 px-4 font-medium text-gray-600 dark:text-gray-300" data-tab="settings">
+                        <i class="fas fa-cog mr-2"></i>Settings
+                    </button>
+                    <button class="tab-btn py-2 px-4 font-medium text-gray-600 dark:text-gray-300" data-tab="info">
+                        <i class="fas fa-info-circle mr-2"></i>Info
+                    </button>
+                </div>
+                
+                <!-- Proxy Tab -->
+                <div id="proxy-tab" class="tab-content">
+                    <div class="flex items-center mb-6">
+                        <i class="fas fa-lock text-2xl text-sakura-500 mr-3"></i>
+                        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">Secure Web Proxy</h2>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="relative">
+                            <input type="text" id="url-input" placeholder="https://example.com または URLを入力してください"
+                                   class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-sakura-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100">
+                            <button id="go-btn" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-sakura-500 hover:bg-sakura-600 text-white px-4 py-2 rounded-lg transition flex items-center">
+                                <i class="fas fa-paper-plane mr-2"></i>
+                                <span class="hidden sm:inline">Go</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Quick Access:</h3>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="quick-site-btn px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg transition flex items-center" data-url="https://google.com">
+                                <i class="fab fa-google text-red-500 mr-2"></i>Google
+                            </button>
+                            <button class="quick-site-btn px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg transition flex items-center" data-url="https://youtube.com">
+                                <i class="fab fa-youtube text-red-600 mr-2"></i>YouTube
+                            </button>
+                            <button class="quick-site-btn px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg transition flex items-center" data-url="https://wikipedia.org">
+                                <i class="fab fa-wikipedia-w text-gray-700 dark:text-gray-300 mr-2"></i>Wikipedia
+                            </button>
+                            <button class="quick-site-btn px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg transition flex items-center" data-url="https://twitter.com">
+                                <i class="fab fa-twitter text-blue-400 mr-2"></i>Twitter
+                            </button>
+                            <button class="quick-site-btn px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg transition flex items-center" data-url="https://github.com">
+                                <i class="fab fa-github text-gray-800 dark:text-gray-300 mr-2"></i>GitHub
+                            </button>
+                            <button class="quick-site-btn px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg transition flex items-center" data-url="https://reddit.com">
+                                <i class="fab fa-reddit text-orange-500 mr-2"></i>Reddit
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 mb-6">
+                        <div class="flex items-center mb-3">
+                            <i class="fas fa-shield-alt text-sakura-500 mr-2"></i>
+                            <h3 class="font-medium text-gray-800 dark:text-gray-100">Privacy Features</h3>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                            <div class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                <span class="text-gray-700 dark:text-gray-300">Encrypted Connection (暗号化接続)</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                <span class="text-gray-700 dark:text-gray-300">No Logs Kept (ログなし)</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                <span class="text-gray-700 dark:text-gray-300">IP Masking (IPマスキング)</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                <span class="text-gray-700 dark:text-gray-300">Japan Server (日本サーバー)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Settings Tab -->
+                <div id="settings-tab" class="tab-content hidden">
+                    <div class="flex items-center mb-6">
+                        <i class="fas fa-cog text-2xl text-sakura-500 mr-3"></i>
+                        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">Proxy Settings</h2>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-medium text-gray-800 dark:text-gray-100">Dark Mode</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Toggle dark theme</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="dark-mode-toggle" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sakura-300 dark:peer-focus:ring-sakura-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-sakura-600"></div>
+                            </label>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-medium text-gray-800 dark:text-gray-100">Language</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">English/日本語</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="language-toggle" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sakura-300 dark:peer-focus:ring-sakura-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-sakura-600"></div>
+                            </label>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-medium text-gray-800 dark:text-gray-100">Cherry Blossom Effect</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Enable/disable falling petals</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="petals-toggle" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sakura-300 dark:peer-focus:ring-sakura-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-sakura-600"></div>
+                            </label>
+                        </div>
+                        
+                        <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <h3 class="font-medium text-gray-800 dark:text-gray-100 mb-2">Server Location</h3>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                <button class="server-btn px-3 py-2 bg-sakura-500 text-white rounded-lg transition flex items-center justify-center" data-location="tokyo">
+                                    <i class="fas fa-city mr-2"></i>Tokyo
+                                </button>
+                                <button class="server-btn px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg transition flex items-center justify-center" data-location="osaka">
+                                    <i class="fas fa-city mr-2"></i>Osaka
+                                </button>
+                                <button class="server-btn px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg transition flex items-center justify-center" data-location="kyoto">
+                                    <i class="fas fa-city mr-2"></i>Kyoto
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Info Tab -->
+                <div id="info-tab" class="tab-content hidden">
+                    <div class="flex items-center mb-6">
+                        <i class="fas fa-info-circle text-2xl text-sakura-500 mr-3"></i>
+                        <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">About Sakura Proxy</h2>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-sakura-100 dark:bg-gray-700 rounded-lg p-4">
+                            <h3 class="font-medium text-gray-800 dark:text-gray-100 mb-2">What is TIXU Proxy?</h3>
+                            <p class="text-gray-700 dark:text-gray-300 text-sm">
+                                TIXU Proxy is a free web proxy service that allows you to browse the internet anonymously and securely. 
+                                Our servers located in Japan provide fast and reliable access to websites while protecting your privacy.
+                            </p>
+                        </div>
+                        
+                        <div class="bg-sakura-100 dark:bg-gray-700 rounded-lg p-4">
+                            <h3 class="font-medium text-gray-800 dark:text-gray-100 mb-2">How it works</h3>
+                            <p class="text-gray-700 dark:text-gray-300 text-sm">
+                                When you visit a website through Sakura Proxy, your connection is encrypted and routed through our servers. 
+                                The website sees our server's IP address instead of yours, keeping your identity and location private.
+                            </p>
+                        </div>
+                        
+                        <div class="bg-sakura-100 dark:bg-gray-700 rounded-lg p-4">
+                            <h3 class="font-medium text-gray-800 dark:text-gray-100 mb-2">Features</h3>
+                            <ul class="list-disc pl-5 text-gray-700 dark:text-gray-300 text-sm space-y-1">
+                                <li>Secure encrypted connections</li>
+                                <li>No activity logs kept</li>
+                                <li>Japanese server locations</li>
+                                <li>Fast browsing speeds</li>
+                                <li>User-friendly interface</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Proxy Container -->
+            <div id="proxy-container" class="hidden glass-card p-1 overflow-hidden mb-6">
+                <div class="flex items-center justify-between bg-gray-100 dark:bg-gray-700 px-4 py-2">
+                    <div class="flex items-center space-x-2">
+                        <button id="back-btn" class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                            <i class="fas fa-arrow-left text-gray-600 dark:text-gray-300"></i>
+                        </button>
+                        <button id="forward-btn" class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                            <i class="fas fa-arrow-right text-gray-600 dark:text-gray-300"></i>
+                        </button>
+                        <button id="refresh-btn" class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                            <i class="fas fa-sync-alt text-gray-600 dark:text-gray-300"></i>
+                        </button>
+                    </div>
+                    <div class="flex-1 mx-2">
+                        <div class="relative">
+                            <input type="text" id="proxy-url" class="w-full px-3 py-1 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-gray-100">
+                        </div>
+                    </div>
+                    <button id="new-tab-btn" class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+                        <i class="fas fa-plus text-gray-600 dark:text-gray-300"></i>
+                    </button>
+                </div>
+                <div class="h-1 bg-gray-200 dark:bg-gray-600">
+                    <div id="loading-bar" class="h-full bg-sakura-500 loading-bar hidden"></div>
+                </div>
+                <iframe id="proxy-frame" class="w-full h-[600px] border-0" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
+            </div>
+            
+            <!-- History Panel -->
+            <div id="history-panel" class="hidden glass-card p-4 mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-800 dark:text-gray-100">
+                        <i class="fas fa-history mr-2 text-sakura-500"></i>Browsing History
+                    </h3>
+                    <button id="clear-history-btn" class="text-sm text-sakura-600 dark:text-sakura-400 hover:underline">Clear All</button>
+                </div>
+                <div id="history-list" class="max-h-60 overflow-y-auto">
+                    <!-- History items will be added here -->
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <footer class="glass-card p-4 text-center">
+                <div class="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                    <p class="text-sm text-gray-600 dark:text-gray-300">© 2023 Sakura Proxy - 桜プロキシサービス</p>
+                    <span class="hidden sm:inline text-gray-400">|</span>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-sm text-gray-600 dark:text-gray-300 hover:text-sakura-500 dark:hover:text-sakura-400">Privacy</a>
+                        <a href="#" class="text-sm text-gray-600 dark:text-gray-300 hover:text-sakura-500 dark:hover:text-sakura-400">Terms</a>
+                        <a href="#" class="text-sm text-gray-600 dark:text-gray-300 hover:text-sakura-500 dark:hover:text-sakura-400">Contact</a>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Secure browsing with Japanese servers - 日本サーバーで安全なブラウジング</p>
+            </footer>
+        </div>
+    </div>
+    
+    <!-- Japanese Text Decoration -->
+    <div class="fixed top-1/2 -left-10 transform -translate-y-1/2 rotate-90 z-0 opacity-10 hidden md:block">
+        <p class="japanese-text text-4xl font-bold text-sakura-500">桜プロキシ</p>
+    </div>
+    
+    <script>
+        // Create cherry blossom petals
+        function createPetals(count = 15) {
+            const container = document.getElementById('petals-container');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < count; i++) {
+                const petal = document.createElement('div');
+                petal.className = 'cherry-blossom';
+                petal.style.setProperty('--random-x', Math.random() * 2 - 1);
+                petal.style.left = `${Math.random() * 100}%`;
+                petal.style.animationDuration = `${5 + Math.random() * 10}s`;
+                petal.style.animationDelay = `${Math.random() * 5}s`;
+                container.appendChild(petal);
+            }
+        }
+        
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notifications = document.getElementById('notifications');
+            const colors = {
+                info: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+                success: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+                warning: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+                error: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+            };
+            
+            const notif = document.createElement('div');
+            notif.className = `notification glass-card px-4 py-3 rounded-lg shadow-md flex items-center ${colors[type]}`;
+            notif.innerHTML = `
+                <i class="fas ${type === 'info' ? 'fa-info-circle' : 
+                  type === 'success' ? 'fa-check-circle' : 
+                  type === 'warning' ? 'fa-exclamation-triangle' : 'fa-times-circle'} mr-2"></i>
+                <span>${message}</span>
+            `;
+            
+            notifications.appendChild(notif);
+            
+            setTimeout(() => {
+                notif.remove();
+            }, 3500);
+        }
+        
+        // Toggle dark mode
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+            
+            const icon = document.querySelector('#theme-toggle i');
+            if (document.body.classList.contains('dark')) {
+                icon.classList.replace('fa-moon', 'fa-sun');
+                document.getElementById('dark-mode-toggle').checked = true;
+            } else {
+                icon.classList.replace('fa-sun', 'fa-moon');
+                document.getElementById('dark-mode-toggle').checked = false;
+            }
+        }
+        
+        // Toggle language
+        function toggleLanguage() {
+            const isJapanese = document.body.classList.toggle('japanese');
+            localStorage.setItem('language', isJapanese ? 'japanese' : 'english');
+            
+            if (isJapanese) {
+                // Update UI elements to Japanese
+                document.getElementById('url-input').placeholder = "URLを入力してください (例: https://example.com)";
+                document.querySelector('h1').textContent = "桜プロキシ";
+                showNotification('言語が日本語に変更されました', 'success');
+            } else {
+                // Update UI elements to English
+                document.getElementById('url-input').placeholder = "Enter website URL (e.g. https://example.com)";
+                document.querySelector('h1').textContent = "Sakura Proxy";
+                showNotification('Language changed to English', 'success');
+            }
+        }
+        
+        // Toggle petals effect
+        function togglePetals(enable) {
+            const petalsContainer = document.getElementById('petals-container');
+            if (enable) {
+                createPetals();
+                petalsContainer.style.display = 'block';
+            } else {
+                petalsContainer.style.display = 'none';
+            }
+            localStorage.setItem('petalsEnabled', enable);
+        }
+        
+        // Load URL through proxy
+        function loadUrl(url) {
+            if (!url) return;
+            
+            // Add https:// if not present
+            if (!url.match(/^https?:\/\//)) {
+                url = 'https://' + url;
+            }
+            
+            const proxyFrame = document.getElementById('proxy-frame');
+            const proxyContainer = document.getElementById('proxy-container');
+            const loadingBar = document.getElementById('loading-bar');
+            const proxyUrlInput = document.getElementById('proxy-url');
+            
+            proxyContainer.classList.remove('hidden');
+            loadingBar.classList.remove('hidden');
+            proxyUrlInput.value = url;
+            
+            // Add to history
+            addToHistory(url);
+            
+            // Scroll to proxy container
+            proxyContainer.scrollIntoView({ behavior: 'smooth' });
+            
+            // Use a CORS proxy to fetch the page
+            fetch(`https://cors-anywhere.herokuapp.com/${url}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Origin': window.location.origin
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                // Create a new document in the iframe
+                const doc = proxyFrame.contentDocument || proxyFrame.contentWindow.document;
+                doc.open();
+                doc.write(html);
+                doc.close();
+                
+                // Modify all links to go through our proxy
+                setTimeout(() => {
+                    const links = doc.querySelectorAll('a');
+                    links.forEach(link => {
+                        const href = link.getAttribute('href');
+                        if (href && !href.startsWith('#')) {
+                            link.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                loadUrl(href);
+                            });
+                        }
+                    });
+                }, 500);
+                
+                loadingBar.classList.add('hidden');
+                showNotification(`Loaded ${new URL(url).hostname} securely`, 'success');
+            })
+            .catch(err => {
+                console.error('Proxy error:', err);
+                loadingBar.classList.add('hidden');
+                showNotification('Failed to load page. Please try another site.', 'error');
+            });
+        }
+        
+        // Add URL to browsing history
+        function addToHistory(url) {
+            let history = JSON.parse(localStorage.getItem('browsingHistory') || '[]');
+            
+            // Remove if already exists
+            history = history.filter(item => item.url !== url);
+            
+            // Add to beginning
+            history.unshift({
+                url: url,
+                title: url,
+                timestamp: new Date().toISOString()
+            });
+            
+            // Keep only last 50 items
+            if (history.length > 50) {
+                history = history.slice(0, 50);
+            }
+            
+            localStorage.setItem('browsingHistory', JSON.stringify(history));
+            updateHistoryList();
+        }
+        
+        // Update history list UI
+        function updateHistoryList() {
+            const historyList = document.getElementById('history-list');
+            const history = JSON.parse(localStorage.getItem('browsingHistory') || '[]');
+            
+            historyList.innerHTML = '';
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400 py-4">No browsing history yet</p>';
+                return;
+            }
+            
+            history.forEach(item => {
+                const hostname = new URL(item.url).hostname;
+                const time = new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item p-3 rounded-lg cursor-pointer flex items-center justify-between';
+                historyItem.innerHTML = `
+                    <div class="flex items-center">
+                        <i class="fas fa-globe text-sakura-500 mr-3"></i>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800 dark:text-gray-100 truncate max-w-xs">${hostname}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">${time}</p>
+                        </div>
+                    </div>
+                    <button class="delete-history-item p-1 text-gray-400 hover:text-red-500" data-url="${item.url}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                
+                historyItem.addEventListener('click', () => {
+                    loadUrl(item.url);
+                    document.getElementById('history-panel').classList.add('hidden');
+                });
+                
+                historyList.appendChild(historyItem);
+            });
+            
+            // Add event listeners to delete buttons
+            document.querySelectorAll('.delete-history-item').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteHistoryItem(btn.dataset.url);
+                });
+            });
+        }
+        
+        // Delete single history item
+        function deleteHistoryItem(url) {
+            let history = JSON.parse(localStorage.getItem('browsingHistory') || '[]');
+            history = history.filter(item => item.url !== url);
+            localStorage.setItem('browsingHistory', JSON.stringify(history));
+            updateHistoryList();
+            showNotification('Removed from history', 'success');
+        }
+        
+        // Clear all history
+        function clearHistory() {
+            localStorage.removeItem('browsingHistory');
+            updateHistoryList();
+            showNotification('Browsing history cleared', 'success');
+        }
+        
+        // Switch tabs
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('tab-active');
+            });
+            
+            document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+            document.querySelector(`.tab-btn[data-tab="${tabName}"]`).classList.add('tab-active');
+        }
+        
+        // Change server location
+        function changeServer(location) {
+            document.querySelectorAll('.server-btn').forEach(btn => {
+                btn.classList.remove('bg-sakura-500', 'text-white');
+                btn.classList.add('bg-gray-100', 'hover:bg-gray-200', 'dark:bg-gray-700', 'dark:hover:bg-gray-600');
+            });
+            
+            const btn = document.querySelector(`.server-btn[data-location="${location}"]`);
+            btn.classList.add('bg-sakura-500', 'text-white');
+            btn.classList.remove('bg-gray-100', 'hover:bg-gray-200', 'dark:bg-gray-700', 'dark:hover:bg-gray-600');
+            
+            localStorage.setItem('serverLocation', location);
+            showNotification(`Server location changed to ${location.charAt(0).toUpperCase() + location.slice(1)}`, 'info');
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize dark mode if previously set
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark');
+                document.querySelector('#theme-toggle i').classList.replace('fa-moon', 'fa-sun');
+                document.getElementById('dark-mode-toggle').checked = true;
+            }
+            
+            // Initialize language if previously set
+            if (localStorage.getItem('language') === 'japanese') {
+                document.body.classList.add('japanese');
+                document.getElementById('language-toggle').checked = true;
+                toggleLanguage(); // This will update the UI text
+            }
+            
+            // Initialize petals if previously enabled
+            const petalsEnabled = localStorage.getItem('petalsEnabled') !== 'false';
+            togglePetals(petalsEnabled);
+            document.getElementById('petals-toggle').checked = petalsEnabled;
+            
+            // Initialize server location
+            const serverLocation = localStorage.getItem('serverLocation') || 'tokyo';
+            changeServer(serverLocation);
+            
+            // Create initial petals
+            if (petalsEnabled) createPetals();
+            
+            // Show welcome notification
+            setTimeout(() => {
+                showNotification('Welcome to Sakura Proxy! Enter a URL to begin.', 'info');
+            }, 1000);
+            
+            // Theme toggle
+            document.getElementById('theme-toggle').addEventListener('click', toggleDarkMode);
+            document.getElementById('dark-mode-toggle').addEventListener('change', (e) => {
+                toggleDarkMode();
+            });
+            
+            // Language toggle
+            document.getElementById('lang-toggle').addEventListener('click', toggleLanguage);
+            document.getElementById('language-toggle').addEventListener('change', (e) => {
+                toggleLanguage();
+            });
+            
+            // Petals toggle
+            document.getElementById('petals-toggle').addEventListener('change', (e) => {
+                togglePetals(e.target.checked);
+            });
+            
+            // Notification button
+            document.getElementById('notif-btn').addEventListener('click', () => {
+                showNotification('You have no new notifications', 'info');
+            });
+            
+            // History button
+            document.getElementById('history-btn').addEventListener('click', () => {
+                const panel = document.getElementById('history-panel');
+                panel.classList.toggle('hidden');
+                if (!panel.classList.contains('hidden')) {
+                    updateHistoryList();
+                }
+            });
+            
+            // Go button
+            document.getElementById('go-btn').addEventListener('click', () => {
+                const url = document.getElementById('url-input').value.trim();
+                loadUrl(url);
+            });
+            
+            // URL input - allow Enter key
+            document.getElementById('url-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const url = document.getElementById('url-input').value.trim();
+                    loadUrl(url);
+                }
+            });
+            
+            // Quick site buttons
+            document.querySelectorAll('.quick-site-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const url = btn.getAttribute('data-url');
+                    document.getElementById('url-input').value = url;
+                    loadUrl(url);
+                });
+            });
+            
+            // Tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    switchTab(btn.dataset.tab);
+                });
+            });
+            
+            // Server location buttons
+            document.querySelectorAll('.server-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    changeServer(btn.dataset.location);
+                });
+            });
+            
+            // Proxy navigation buttons
+            document.getElementById('back-btn').addEventListener('click', () => {
+                const proxyFrame = document.getElementById('proxy-frame');
+                try {
+                    proxyFrame.contentWindow.history.back();
+                } catch (e) {
+                    showNotification('Cannot navigate back due to security restrictions', 'warning');
+                }
+            });
+            
+            document.getElementById('forward-btn').addEventListener('click', () => {
+                const proxyFrame = document.getElementById('proxy-frame');
+                try {
+                    proxyFrame.contentWindow.history.forward();
+                } catch (e) {
+                    showNotification('Cannot navigate forward due to security restrictions', 'warning');
+                }
+            });
+            
+            document.getElementById('refresh-btn').addEventListener('click', () => {
+                const proxyFrame = document.getElementById('proxy-frame');
+                try {
+                    proxyFrame.contentWindow.location.reload();
+                } catch (e) {
+                    const url = document.getElementById('proxy-url').value;
+                    if (url) loadUrl(url);
+                }
+            });
+            
+            document.getElementById('new-tab-btn').addEventListener('click', () => {
+                document.getElementById('url-input').value = '';
+                document.getElementById('proxy-url').value = '';
+                document.getElementById('proxy-container').classList.add('hidden');
+                document.getElementById('url-input').focus();
+            });
+            
+            // Proxy URL input
+            document.getElementById('proxy-url').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const url = document.getElementById('proxy-url').value.trim();
+                    loadUrl(url);
+                }
+            });
+            
+            // Clear history button
+            document.getElementById('clear-history-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (confirm('Are you sure you want to clear all browsing history?')) {
+                    clearHistory();
+                }
+            });
+        });
+    </script>
+</body>
+  </html>
