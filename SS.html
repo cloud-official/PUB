@@ -1,1 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>sz games</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0a0a0a;
+      min-height: 100vh;
+    }
+    
+    .chat-message {
+      animation: fadeIn 0.3s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .brand-gradient {
+      background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 50%, #a855f7 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    
+    .brand-bg {
+      background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 50%, #a855f7 100%);
+    }
+    
+    .glow {
+      box-shadow: 0 0 15px rgba(124, 58, 237, 0.3);
+    }
+    
+    .transition-all {
+      transition: all 0.3s ease;
+    }
+    
+    .chat-container {
+      height: 70vh;
+    }
+    
+    @media (max-width: 640px) {
+      .chat-container {
+        height: 65vh;
+      }
+    }
+    
+    .logo-container {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #a855f7 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+    }
+    
+    .logo-img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+  </style>
+</head>
+<body class="text-gray-100">
+  <!-- Auth Modal -->
+  <div id="authModal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 transition-all duration-300">
+    <div class="bg-gray-900 rounded-xl p-8 w-full max-w-md mx-4 border border-gray-800 transform transition-all duration-300 scale-95">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold brand-gradient">Welcome to sz games</h2>
+        <button id="closeAuth" class="text-gray-400 hover:text-white">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="flex mb-6 border-b border-gray-800">
+        <button id="loginTab" class="flex-1 py-2 font-medium text-center border-b-2 border-purple-500 text-purple-500">Login</button>
+        <button id="signupTab" class="flex-1 py-2 font-medium text-center text-gray-400 hover:text-white">Sign Up</button>
+      </div>
+      
+      <!-- Login Form -->
+      <div id="loginForm">
+        <div class="mb-4">
+          <label class="block text-gray-400 mb-2">Username</label>
+          <input type="text" id="loginUsername" class="w-full bg-gray-800 rounded-lg px-4 py-3 border border-gray-700 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 transition-all" placeholder="Enter your username">
+        </div>
+        <div class="mb-6">
+          <label class="block text-gray-400 mb-2">Password</label>
+          <input type="password" id="loginPassword" class="w-full bg-gray-800 rounded-lg px-4 py-3 border border-gray-700 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 transition-all" placeholder="Enter your password">
+        </div>
+        <button id="loginBtn" class="w-full brand-bg hover:opacity-90 text-white font-bold py-3 rounded-lg glow hover:glow-lg transition-all">
+          Login <i class="fas fa-sign-in-alt ml-2"></i>
+        </button>
+      </div>
+      
+      <!-- Signup Form -->
+      <div id="signupForm" class="hidden">
+        <div class="mb-4">
+          <label class="block text-gray-400 mb-2">Choose Username</label>
+          <input type="text" id="signupUsername" class="w-full bg-gray-800 rounded-lg px-4 py-3 border border-gray-700 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 transition-all" placeholder="Pick a unique username">
+          <p id="usernameError" class="text-red-500 text-sm mt-1 hidden"></p>
+        </div>
+        <div class="mb-4">
+          <label class="block text-gray-400 mb-2">Email</label>
+          <input type="email" id="signupEmail" class="w-full bg-gray-800 rounded-lg px-4 py-3 border border-gray-700 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 transition-all" placeholder="Enter your email">
+        </div>
+        <div class="mb-6">
+          <label class="block text-gray-400 mb-2">Password</label>
+          <input type="password" id="signupPassword" class="w-full bg-gray-800 rounded-lg px-4 py-3 border border-gray-700 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 transition-all" placeholder="Create a password">
+        </div>
+        <button id="signupBtn" class="w-full brand-bg hover:opacity-90 text-white font-bold py-3 rounded-lg glow hover:glow-lg transition-all">
+          Create Account <i class="fas fa-user-plus ml-2"></i>
+        </button>
+      </div>
+    </div>
+  </div>
 
+  <!-- Main Chat UI -->
+  <div class="container mx-auto px-4 py-8 max-w-4xl">
+    <header class="flex flex-col items-center mb-8">
+      <div class="logo-container mb-4">
+        <img src="https://raw.githubusercontent.com/sz-games/home/refs/heads/main/G.png" alt="sz games logo" class="logo-img">
+      </div>
+      <div>
+        <h1 class="text-4xl font-bold brand-gradient text-center">sz games</h1>
+        <p class="text-gray-400 text-center">by tixu-cloud</p>
+      </div>
+      <div id="userInfo" class="hidden mt-6">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-full brand-bg flex items-center justify-center text-white font-bold">
+            <span id="userInitial">U</span>
+          </div>
+          <div>
+            <p class="font-medium" id="displayUsername">Username</p>
+            <button id="logoutBtn" class="text-xs text-gray-400 hover:text-purple-500 transition-all">Logout</button>
+          </div>
+        </div>
+      </div>
+      <button id="authBtn" class="mt-6 brand-bg hover:opacity-90 text-white font-medium py-2 px-6 rounded-lg glow hover:glow-lg transition-all">
+        Login <i class="fas fa-sign-in-alt ml-2"></i>
+      </button>
+    </header>
+
+    <div class="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden shadow-xl">
+      <!-- Chat Header -->
+      <div class="bg-gray-800 px-6 py-4 border-b border-gray-800 flex items-center">
+        <div class="w-3 h-3 rounded-full bg-purple-500 mr-2 glow"></div>
+        <h3 class="font-medium">Global Chat</h3>
+        <div class="ml-auto flex items-center space-x-2">
+          <span id="onlineCount" class="text-sm text-gray-400">0 online</span>
+          <div class="w-2 h-2 rounded-full bg-purple-500"></div>
+        </div>
+      </div>
+      
+      <!-- Chat Messages -->
+      <div id="chat" class="chat-container overflow-y-auto p-6 space-y-4">
+        <div class="text-center py-10 text-gray-500">
+          <i class="fas fa-comments text-4xl mb-3"></i>
+          <p>Welcome to sz games! Please login to start messaging.</p>
+        </div>
+      </div>
+      
+      <!-- Message Input -->
+      <div id="messageInput" class="hidden bg-gray-800 p-4 border-t border-gray-800">
+        <div class="flex space-x-3">
+          <input id="message" type="text" placeholder="Type a message..." class="flex-1 bg-gray-700 rounded-lg px-4 py-3 border border-gray-700 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 transition-all" disabled>
+          <button id="send" class="brand-bg hover:opacity-90 text-white font-medium py-3 px-6 rounded-lg glow hover:glow-lg transition-all disabled:opacity-50" disabled>
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+        <p class="text-xs text-gray-500 mt-2">Press Enter to send</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      databaseURL: "https://tixu-1d1e9-default-rtdb.firebaseio.com/"
+    };
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const chatRef = db.ref("messages");
+    const usersRef = db.ref("users");
+    const onlineRef = db.ref("online");
+    
+    // DOM Elements
+    const authModal = document.getElementById('authModal');
+    const closeAuth = document.getElementById('closeAuth');
+    const authBtn = document.getElementById('authBtn');
+    const loginTab = document.getElementById('loginTab');
+    const signupTab = document.getElementById('signupTab');
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    const loginBtn = document.getElementById('loginBtn');
+    const signupBtn = document.getElementById('signupBtn');
+    const loginUsername = document.getElementById('loginUsername');
+    const loginPassword = document.getElementById('loginPassword');
+    const signupUsername = document.getElementById('signupUsername');
+    const signupEmail = document.getElementById('signupEmail');
+    const signupPassword = document.getElementById('signupPassword');
+    const usernameError = document.getElementById('usernameError');
+    const userInfo = document.getElementById('userInfo');
+    const displayUsername = document.getElementById('displayUsername');
+    const userInitial = document.getElementById('userInitial');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const chat = document.getElementById('chat');
+    const message = document.getElementById('message');
+    const send = document.getElementById('send');
+    const messageInput = document.getElementById('messageInput');
+    const onlineCount = document.getElementById('onlineCount');
+    
+    // State
+    let currentUser = null;
+    let isUsernameAvailable = false;
+    
+    // Event Listeners
+    authBtn.addEventListener('click', () => {
+      authModal.classList.remove('hidden');
+      setTimeout(() => {
+        document.querySelector('#authModal > div').classList.remove('scale-95');
+      }, 10);
+    });
+    
+    closeAuth.addEventListener('click', () => {
+      document.querySelector('#authModal > div').classList.add('scale-95');
+      setTimeout(() => {
+        authModal.classList.add('hidden');
+      }, 300);
+    });
+    
+    loginTab.addEventListener('click', () => {
+      loginTab.classList.add('border-purple-500', 'text-purple-500');
+      loginTab.classList.remove('text-gray-400');
+      signupTab.classList.remove('border-purple-500', 'text-purple-500');
+      signupTab.classList.add('text-gray-400');
+      loginForm.classList.remove('hidden');
+      signupForm.classList.add('hidden');
+    });
+    
+    signupTab.addEventListener('click', () => {
+      signupTab.classList.add('border-purple-500', 'text-purple-500');
+      signupTab.classList.remove('text-gray-400');
+      loginTab.classList.remove('border-purple-500', 'text-purple-500');
+      loginTab.classList.add('text-gray-400');
+      signupForm.classList.remove('hidden');
+      loginForm.classList.add('hidden');
+    });
+    
+    signupUsername.addEventListener('input', checkUsernameAvailability);
+    
+    loginBtn.addEventListener('click', handleLogin);
+    signupBtn.addEventListener('click', handleSignup);
+    logoutBtn.addEventListener('click', handleLogout);
+    send.addEventListener('click', sendMessage);
+    message.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+    
+    // Functions
+    function checkUsernameAvailability() {
+      const username = signupUsername.value.trim().toLowerCase();
+      if (username.length < 3) {
+        usernameError.textContent = 'Username must be at least 3 characters';
+        usernameError.classList.remove('hidden');
+        isUsernameAvailable = false;
+        return;
+      }
+      
+      usersRef.child(username).once('value', (snapshot) => {
+        if (snapshot.exists()) {
+          usernameError.textContent = 'Username is already taken';
+          usernameError.classList.remove('hidden');
+          isUsernameAvailable = false;
+        } else {
+          usernameError.classList.add('hidden');
+          isUsernameAvailable = true;
+        }
+      });
+    }
+    
+    function handleLogin() {
+      const username = loginUsername.value.trim().toLowerCase();
+      const password = loginPassword.value.trim();
+      
+      if (!username || !password) {
+        alert('Please enter both username and password');
+        return;
+      }
+      
+      // In a real app, you would verify credentials properly
+      // This is just a demo implementation
+      usersRef.child(username).once('value', (snapshot) => {
+        if (snapshot.exists()) {
+          const userData = snapshot.val();
+          if (password === userData.password) { // In real app, use proper password hashing
+            loginSuccess(username);
+          } else {
+            alert('Incorrect password');
+          }
+        } else {
+          alert('Username not found');
+        }
+      });
+    }
+    
+    function handleSignup() {
+      const username = signupUsername.value.trim().toLowerCase();
+      const email = signupEmail.value.trim();
+      const password = signupPassword.value.trim();
+      
+      if (!username || !email || !password) {
+        alert('Please fill in all fields');
+        return;
+      }
+      
+      if (!isUsernameAvailable) {
+        alert('Please choose an available username');
+        return;
+      }
+      
+      if (password.length < 6) {
+        alert('Password must be at least 6 characters');
+        return;
+      }
+      
+      // In a real app, you would hash the password before storing
+      usersRef.child(username).set({
+        username: username,
+        email: email,
+        password: password, // Never store plain text passwords in production!
+        createdAt: firebase.database.ServerValue.TIMESTAMP
+      }).then(() => {
+        loginSuccess(username);
+      }).catch((error) => {
+        console.error('Error creating user:', error);
+        alert('Error creating account. Please try again.');
+      });
+    }
+    
+    function loginSuccess(username) {
+      currentUser = username;
+      
+      // Update UI
+      authModal.classList.add('hidden');
+      authBtn.classList.add('hidden');
+      userInfo.classList.remove('hidden');
+      displayUsername.textContent = username;
+      userInitial.textContent = username.charAt(0).toUpperCase();
+      messageInput.classList.remove('hidden');
+      message.disabled = false;
+      send.disabled = false;
+      
+      // Clear welcome message
+      chat.innerHTML = '';
+      
+      // Set user as online
+      const userOnlineRef = onlineRef.child(username);
+      userOnlineRef.set(true);
+      userOnlineRef.onDisconnect().remove();
+      
+      // Load messages
+      chatRef.on('child_added', (snapshot) => {
+        const msg = snapshot.val();
+        addMessageToChat(msg.user, msg.text, msg.timestamp);
+      });
+      
+      // Update online count
+      onlineRef.on('value', (snapshot) => {
+        const count = snapshot.numChildren();
+        onlineCount.textContent = `${count} online`;
+      });
+    }
+    
+    function handleLogout() {
+      // Remove from online users
+      if (currentUser) {
+        onlineRef.child(currentUser).remove();
+      }
+      
+      // Reset UI
+      currentUser = null;
+      userInfo.classList.add('hidden');
+      authBtn.classList.remove('hidden');
+      messageInput.classList.add('hidden');
+      chat.innerHTML = `
+        <div class="text-center py-10 text-gray-500">
+          <i class="fas fa-comments text-4xl mb-3"></i>
+          <p>Welcome to sz games! Please login to start messaging.</p>
+        </div>
+      `;
+      
+      // Clear form fields
+      loginUsername.value = '';
+      loginPassword.value = '';
+      signupUsername.value = '';
+      signupEmail.value = '';
+      signupPassword.value = '';
+      usernameError.classList.add('hidden');
+    }
+    
+    function sendMessage() {
+      const text = message.value.trim();
+      if (!text || !currentUser) return;
+      
+      chatRef.push({
+        user: currentUser,
+        text: text,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      }).then(() => {
+        message.value = '';
+      }).catch((error) => {
+        console.error('Error sending message:', error);
+      });
+    }
+    
+    function addMessageToChat(user, text, timestamp) {
+      const isCurrentUser = user === currentUser;
+      const date = new Date(timestamp);
+      const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `chat-message flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`;
+      
+      messageDiv.innerHTML = `
+        <div class="max-w-xs md:max-w-md lg:max-w-lg ${isCurrentUser ? 'brand-bg' : 'bg-gray-800'} rounded-2xl p-4 ${isCurrentUser ? 'rounded-tr-none' : 'rounded-tl-none'}">
+          ${!isCurrentUser ? `<div class="font-bold text-purple-400">${user}</div>` : ''}
+          <div class="mt-1">${text}</div>
+          <div class="text-xs text-gray-400 mt-1 text-right">${timeString}</div>
+        </div>
+      `;
+      
+      chat.appendChild(messageDiv);
+      chat.scrollTop = chat.scrollHeight;
+    }
+    
+    // Initialize
+    loginTab.click();
+  </script>
+</body>
+  </html>
