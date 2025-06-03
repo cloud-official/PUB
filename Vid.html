@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>YT Story Editor 🎬</title>
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      font-family: 'Segoe UI', sans-serif;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h2 {
+      margin: 20px 0 10px;
+    }
+
+    .controls {
+      background: #1e1e1e;
+      border-radius: 10px;
+      padding: 20px;
+      width: 90%;
+      max-width: 500px;
+      margin: 20px auto;
+      box-shadow: 0 0 20px rgba(0,255,150,0.2);
+    }
+
+    textarea, input, button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1em;
+    }
+
+    button {
+      background: limegreen;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: green;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .row input {
+      flex: 1;
+    }
+
+    #videoContainer {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      margin-top: 20px;
+    }
+
+    video {
+      width: 100%;
+      max-height: 90vh;
+    }
+
+    #overlayWords {
+      position: absolute;
+      bottom: 15%;
+      width: 90%;
+      left: 5%;
+      text-align: center;
+      font-size: 2em;
+      font-weight: bold;
+      color: white;
+      text-shadow: 2px 2px 8px #000;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 15px;
+      border-radius: 15px;
+      min-height: 80px;
+    }
+
+    #credits {
+      position: absolute;
+      bottom: 5%;
+      width: 100%;
+      text-align: center;
+      font-size: 1em;
+      color: #00ff88;
+      font-style: italic;
+      opacity: 0;
+      transition: opacity 1s ease-in;
+    }
+
+    #credits.show {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="controls">
+    <h2>YT Story Meme Editor 🎬</h2>
+    <textarea id="story" rows="5" placeholder="Enter your story here..."></textarea>
+    <input type="text" id="creditInput" placeholder="Credit name (optional)">
+    <div class="row">
+      <input type="number" id="startTime" placeholder="Start Time (sec)">
+      <input type="number" id="endTime" placeholder="End Time (sec)">
+    </div>
+    <input type="file" id="videoInput" accept="video/*">
+    <button onclick="startEdit()">▶️ Play + Record</button>
+    <button onclick="stopRecording()">⏹️ Stop & Download</button>
+  </div>
+
+  <div id="videoContainer">
+    <video id="video" muted playsinline></video>
+    <div id="overlayWords"></div>
+    <div id="credits">Made by Someone</div>
+  </div>
+
+  <script>
+    const video = document.getElementById('video');
+    const overlay = document.getElementById('overlayWords');
+    const credits = document.getElementById('credits');
+    const storyBox = document.getElementById('story');
+    const videoInput = document.getElementById('videoInput');
+    const creditInput = document.getElementById('creditInput');
+    const startTimeInput = document.getElementById('startTime');
+    const endTimeInput = document.getElementById('endTime');
+
+    let mediaRecorder;
+    let recordedChunks = [];
+    let trimEnd = null;
+
+    videoInput.onchange = function () {
+      const file = videoInput.files[0];
+      if (file) {
+        const url = URL.createObjectURL(file);
+        video.src = url;
+        video.onloadedmetadata = () => {
+          endTimeInput.value = Math.floor(video.duration);
+        };
+      }
+    };
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function animateWords(words) {
+      overlay.innerHTML = "";
+      for (let i = 0; i < words.length; i++) {
+        overlay.innerHTML = "";
+        const span = document.createElement("span");
+        span.textContent = words[i];
+        span.style.opacity = 0;
+        overlay.appendChild(span);
+        for (let o = 0; o <= 1; o += 0.1) {
+          span.style.opacity = o;
+          await sleep(20);
+        }
+        await sleep(500);
+      }
+
+      const creditText = creditInput.value.trim();
+      if (creditText) {
+        credits.textContent = "Made by " + creditText;
+        credits.classList.add("show");
+      }
+    }
+
+    async function startEdit() {
+      const story = storyBox.value.trim();
+      const startTime = parseFloat(startTimeInput.value) || 0;
+      const endTime = parseFloat(endTimeInput.value) || video.duration;
+      trimEnd = endTime;
+
+      if (!story) return alert("Please enter a story!");
+      if (startTime >= endTime) return alert("Start time must be before end time.");
+      const words = story.split(" ");
+      const utter = new SpeechSynthesisUtterance(story);
+      utter.rate = 1;
+      utter.pitch = 1;
+      utter.lang = "en-US";
+
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video: { mediaSource: "screen" }, audio: false });
+      mediaRecorder = new MediaRecorder(stream);
+      recordedChunks = [];
+
+      mediaRecorder.ondataavailable = function (e) {
+        if (e.data.size > 0) {
+          recordedChunks.push(e.data);
+        }
+      };
+
+      mediaRecorder.onstop = function () {
+        const blob = new Blob(recordedChunks, { type: "video/webm" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "yt_story_edit.mp4";
+        a.click();
+      };
+
+      video.currentTime = startTime;
+      video.play();
+
+      mediaRecorder.start();
+      speechSynthesis.cancel();
+      speechSynthesis.speak(utter);
+      credits.classList.remove("show");
+
+      animateWords(words);
+
+      // Auto-stop video at trim end
+      const checker = setInterval(() => {
+        if (video.currentTime >= trimEnd) {
+          clearInterval(checker);
+          video.pause();
+          stopRecording();
+        }
+      }, 200);
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
+        alert("Download will begin shortly.");
+      }
+    }
+  </script>
+
+</body>
+</html>
