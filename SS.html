@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zoom</title>
+  <title>TIXU Cloud</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -24,6 +25,15 @@
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .notification {
+      animation: slideIn 0.5s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(100%); }
+      to { opacity: 1; transform: translateX(0); }
     }
     
     .brand-gradient {
@@ -46,12 +56,23 @@
     }
     
     .chat-container {
-      height: 70vh;
+      height: 65vh;
+    }
+    
+    .file-upload-container {
+      height: 200px;
+      border: 2px dashed #4f46e5;
+      border-radius: 8px;
+      position: relative;
+    }
+    
+    .typing-indicator {
+      height: 24px;
     }
     
     @media (max-width: 640px) {
       .chat-container {
-        height: 65vh;
+        height: 60vh;
       }
     }
     
@@ -72,14 +93,69 @@
       border-radius: 50%;
       object-fit: cover;
     }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: #1a1a1a;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: #4f46e5;
+      border-radius: 3px;
+    }
+    
+    /* Notification dot */
+    .unread-notification::after {
+      content: '';
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 10px;
+      height: 10px;
+      background-color: #ef4444;
+      border-radius: 50%;
+      border: 2px solid #0a0a0a;
+    }
   </style>
 </head>
 <body class="text-gray-100">
+  <!-- Audio elements for notifications -->
+  <audio id="messageSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3" preload="auto"></audio>
+  <audio id="errorSound" src="https://assets.mixkit.co/sfx/preview/mixkit-software-interface-back-button-2582.mp3" preload="auto"></audio>
+  <audio id="notificationSound" src="https://assets.mixkit.co/sfx/preview/mixkit-melodic-notification-sound-2001.mp3" preload="auto"></audio>
+  
+  <!-- Notification center -->
+  <div class="fixed top-4 right-4 max-w-xs w-full z-50 space-y-2" id="notificationCenter"></div>
+  
+  <!-- File Preview Modal -->
+  <div id="filePreviewModal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 hidden px-4">
+    <div class="relative bg-gray-900 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-gray-800">
+      <div class="absolute right-4 top-4 z-10">
+        <button id="closePreview" class="bg-gray-900 bg-opacity-50 rounded-full p-2 hover:bg-gray-800 transition-all">
+          <i class="fas fa-times text-white text-xl"></i>
+        </button>
+      </div>
+      <div class="flex flex-col h-full">
+        <div class="p-4 border-b border-gray-800 flex items-center">
+          <div class="text-lg font-medium text-white" id="previewFileName"></div>
+          <a id="downloadFileBtn" class="ml-auto bg-purple-600 hover:bg-purple-700 text-white px-4 py-1.5 rounded-lg text-sm">
+            <i class="fas fa-download mr-1"></i> Download
+          </a>
+        </div>
+        <div class="flex-1 overflow-auto flex items-center justify-center p-4" id="previewContent"></div>
+      </div>
+    </div>
+  </div>
+  
   <!-- Auth Modal -->
-  <div id="authModal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 transition-all duration-300">
+  <div id="authModal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 transition-all duration-300 hidden">
     <div class="bg-gray-900 rounded-xl p-8 w-full max-w-md mx-4 border border-gray-800 transform transition-all duration-300 scale-95">
       <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold brand-gradient">Welcome to TIXU | Cloud</h2>
+        <h2 class="text-2xl font-bold brand-gradient">Welcome to TIXU Cloud</h2>
         <button id="closeAuth" class="text-gray-400 hover:text-white">
           <i class="fas fa-times"></i>
         </button>
@@ -96,13 +172,20 @@
           <label class="block text-gray-400 mb-2">Username</label>
           <input type="text" id="loginUsername" class="w-full bg-gray-800 rounded-lg px-4 py-3 border border-gray-700 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 transition-all" placeholder="Enter your username">
         </div>
-        <div class="mb-6">
+        <div class="mb-4">
           <label class="block text-gray-400 mb-2">Password</label>
           <input type="password" id="loginPassword" class="w-full bg-gray-800 rounded-lg px-4 py-3 border border-gray-700 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 transition-all" placeholder="Enter your password">
         </div>
-        <button id="loginBtn" class="w-full brand-bg hover:opacity-90 text-white font-bold py-3 rounded-lg glow hover:glow-lg transition-all">
+        <div class="flex items-center mb-6">
+          <input type="checkbox" id="rememberMe" class="w-4 h-4 text-purple-600 bg-gray-800 border-gray-700 rounded focus:ring-purple-500 focus:ring-2">
+          <label for="rememberMe" class="ml-2 text-sm text-gray-400">Remember me</label>
+        </div>
+        <button id="loginBtn" class="w-full brand-bg hover:opacity-90 text-white font-bold py-3 rounded-lg glow hover:glow-lg transition-all mb-4">
           Login <i class="fas fa-sign-in-alt ml-2"></i>
         </button>
+        <div class="text-center">
+          <button id="forgotPassword" class="text-sm text-purple-500 hover:text-purple-400">Forgot password?</button>
+        </div>
       </div>
       
       <!-- Signup Form -->
@@ -113,12 +196,32 @@
           <p id="usernameError" class="text-red-500 text-sm mt-1 hidden"></p>
         </div>
         <div class="mb-4">
-          <label class="block text-gray-400 mb-2">bio</label>
+          <label class="block text-gray-400 mb-2">Email</label>
           <input type="email" id="signupEmail" class="w-full bg-gray-800 rounded-lg px-4 py-3 border border-gray-700 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 transition-all" placeholder="Enter your email">
         </div>
-        <div class="mb-6">
+        <div class="mb-4">
           <label class="block text-gray-400 mb-2">Password</label>
           <input type="password" id="signupPassword" class="w-full bg-gray-800 rounded-lg px-4 py-3 border border-gray-700 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 transition-all" placeholder="Create a password">
+          <p class="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
+        </div>
+        <div class="mb-4">
+          <label class="block text-gray-400 mb-2">Profile Picture</label>
+          <div class="file-upload-container flex flex-col items-center justify-center cursor-pointer" id="profileUploadContainer">
+            <input type="file" id="profileImage" accept="image/*" class="hidden">
+            <i class="fas fa-cloud-upload-alt text-4xl text-purple-500 mb-2"></i>
+            <p class="text-purple-400 text-center">Click to upload image</p>
+            <p class="text-xs text-gray-500 mt-2">Max 2MB</p>
+          </div>
+          <div class="mt-2 flex items-center justify-center hidden" id="previewImageContainer">
+            <img id="previewImage" class="h-16 w-16 rounded-full object-cover">
+            <button id="removeImage" class="ml-2 text-red-500 hover:text-red-400">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        <div class="mb-6">
+          <label class="block text-gray-400 mb-2 bio">bio</label>
+          <textarea id="userBio" class="w-full bg-gray-800 rounded-lg px-4 py-3 border border-gray-700 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 transition-all" placeholder="Tell us about yourself" rows="2"></textarea>
         </div>
         <button id="signupBtn" class="w-full brand-bg hover:opacity-90 text-white font-bold py-3 rounded-lg glow hover:glow-lg transition-all">
           Create Account <i class="fas fa-user-plus ml-2"></i>
@@ -126,26 +229,44 @@
       </div>
     </div>
   </div>
-
+  
   <!-- Main Chat UI -->
   <div class="container mx-auto px-4 py-8 max-w-4xl">
     <header class="flex flex-col items-center mb-8">
       <div class="logo-container mb-4">
-        <img src="https://raw.githubusercontent.com/TIXU-RAMP/PAGE/refs/heads/main/Water%20Splash.png" alt="sz games logo" class="logo-img">
+        <img src="https://raw.githubusercontent.com/TIXU-RAMP/PAGE/refs/heads/main/Water%20Splash.png" alt="TIXU logo" class="logo-img">
       </div>
       <div>
-        <h1 class="text-4xl font-bold brand-gradient text-center">TIXU</h1>
+        <h1 class="text-4xl font-bold brand-gradient text-center">TIXU Cloud</h1>
         <p class="text-gray-400 text-center">by 𝕱𝖎𝖘𝖙 𓆩♱𓆪</p>
       </div>
       <div id="userInfo" class="hidden mt-6">
         <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-full brand-bg flex items-center justify-center text-white font-bold">
-            <span id="userInitial">U</span>
+          <div class="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold" id="userAvatar">
+            <span id="userInitial" class="uppercase">U</span>
           </div>
           <div>
-            <p class="font-medium" id="displayUsername">Username</p>
-            <button id="logoutBtn" class="text-xs text-gray-400 hover:text-purple-500 transition-all">Logout</button>
+            <p class="font-medium text-sm" id="displayUsername">Username</p>
+            <div class="flex items-center">
+              <span class="text-xs text-gray-400">Online</span>
+              <div class="w-2 h-2 rounded-full bg-green-500 ml-2"></div>
+            </div>
           </div>
+          <div class="ml-4 flex space-x-2">
+            <button id="notificationBtn" class="relative p-2 rounded-full hover:bg-gray-800 transition-all">
+              <i class="fas fa-bell text-gray-400"></i>
+              <span id="unreadCount" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+            </button>
+            <button id="settingsBtn" class="p-2 rounded-full hover:bg-gray-800 transition-all">
+              <i class="fas fa-cog text-gray-400"></i>
+            </button>
+            <button id="logoutBtn" class="p-2 rounded-full hover:bg-gray-800 transition-all">
+              <i class="fas fa-sign-out-alt text-gray-400"></i>
+            </button>
+          </div>
+        </div>
+        <div class="mt-1">
+          <p class="text-xs text-gray-400" id="userBioDisplay"></p>
         </div>
       </div>
       <button id="authBtn" class="mt-6 brand-bg hover:opacity-90 text-white font-medium py-2 px-6 rounded-lg glow hover:glow-lg transition-all">
@@ -158,8 +279,9 @@
       <div class="bg-gray-800 px-6 py-4 border-b border-gray-800 flex items-center">
         <div class="w-3 h-3 rounded-full bg-purple-500 mr-2 glow"></div>
         <h3 class="font-medium">Global Chat</h3>
-        <div class="ml-auto flex items-center space-x-2">
+        <div class="ml-auto flex items-center space-x-4">
           <span id="onlineCount" class="text-sm text-gray-400">0 online</span>
+          <div id="typingIndicator" class="text-sm italic text-gray-400 typing-indicator hidden">Someone is typing...</div>
           <div class="w-2 h-2 rounded-full bg-purple-500"></div>
         </div>
       </div>
@@ -168,19 +290,71 @@
       <div id="chat" class="chat-container overflow-y-auto p-6 space-y-4">
         <div class="text-center py-10 text-gray-500">
           <i class="fas fa-comments text-4xl mb-3"></i>
-          <p>Welcome to sz games! Please login to start messaging.</p>
+          <p>Welcome to TIXU Cloud! Please login to start messaging.</p>
         </div>
       </div>
       
       <!-- Message Input -->
       <div id="messageInput" class="hidden bg-gray-800 p-4 border-t border-gray-800">
         <div class="flex space-x-3">
-          <input id="message" type="text" placeholder="Type a message..." class="flex-1 bg-gray-700 rounded-lg px-4 py-3 border border-gray-700 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 transition-all" disabled>
+          <button id="attachFileBtn" class="text-gray-400 hover:text-purple-500 text-xl p-2 transition-all">
+            <i class="fas fa-paperclip"></i>
+          </button>
+          <div class="relative flex-1">
+            <input id="message" type="text" placeholder="Type a message..." class="w-full bg-gray-700 rounded-lg px-4 py-3 border border-gray-700 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 transition-all" disabled>
+            <div class="absolute right-3 top-3 text-gray-500 hidden" id="typingDots">
+              <span class="inline-block w-2 h-2 bg-gray-500 rounded-full mx-px opacity-0 animate-pulse"></span>
+              <span class="inline-block w-2 h-2 bg-gray-500 rounded-full mx-px opacity-0 animate-pulse" style="animation-delay: 0.2s"></span>
+              <span class="inline-block w-2 h-2 bg-gray-500 rounded-full mx-px opacity-0 animate-pulse" style="animation-delay: 0.4s"></span>
+            </div>
+          </div>
           <button id="send" class="brand-bg hover:opacity-90 text-white font-medium py-3 px-6 rounded-lg glow hover:glow-lg transition-all disabled:opacity-50" disabled>
             <i class="fas fa-paper-plane"></i>
           </button>
         </div>
         <p class="text-xs text-gray-500 mt-2">Press Enter to send</p>
+        <div class="flex items-center mt-2 text-sm text-gray-500">
+          <i class="fas fa-info-circle mr-2"></i>
+          <p>File upload limit: 5MB</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- File Upload Modal -->
+    <div id="fileUploadModal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden">
+      <div class="bg-gray-900 rounded-xl p-6 w-full max-w-md mx-4 border border-gray-800">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-medium">Upload File</h3>
+          <button id="closeFileUpload" class="text-gray-400 hover:text-white">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="file-upload-container flex flex-col items-center justify-center p-6 mb-4" id="fileDropZone">
+          <input type="file" id="fileInput" class="hidden">
+          <i class="fas fa-cloud-upload-alt text-4xl text-purple-500 mb-2"></i>
+          <p class="text-purple-400 text-center">Drag & drop files here or click to select</p>
+          <p class="text-xs text-gray-500 mt-2">Supports images, videos, and documents</p>
+        </div>
+        <div id="fileInfo" class="hidden mb-4 p-3 bg-gray-800 rounded-lg">
+          <div class="flex items-center">
+            <i class="fas fa-file text-gray-400 mr-3" id="fileIcon"></i>
+            <div class="flex-1 overflow-hidden">
+              <p class="font-medium text-sm truncate" id="fileName"></p>
+              <p class="text-xs text-gray-500" id="fileSize"></p>
+            </div>
+            <button id="removeFile" class="text-red-500 hover:text-red-400 ml-2">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        <div class="flex space-x-3">
+          <button id="cancelUpload" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 rounded-lg transition-all">
+            Cancel
+          </button>
+          <button id="confirmUpload" class="flex-1 brand-bg hover:opacity-90 text-white font-medium py-2 rounded-lg glow transition-all disabled:opacity-50" disabled>
+            Upload
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -188,15 +362,25 @@
   <script>
     // Firebase configuration
     const firebaseConfig = {
-      databaseURL: "https://tixu-1d1e9-default-rtdb.firebaseio.com/"
+      apiKey: "AIzaSyB2_v8U8M_4C5Hf8UQNQXl4rHZzZZ1XwM0",
+      authDomain: "tixu-1d1e9.firebaseapp.com",
+      databaseURL: "https://tixu-1d1e9-default-rtdb.firebaseio.com",
+      projectId: "tixu-1d1e9",
+      storageBucket: "tixu-1d1e9.appspot.com",
+      messagingSenderId: "1234567890", // Replace with actual sender ID
+      appId: "1:1234567890:web:abcdef1234567890" // Replace with actual app ID
     };
     
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    const storage = firebase.storage();
     const chatRef = db.ref("messages");
     const usersRef = db.ref("users");
     const onlineRef = db.ref("online");
+    const typingRef = db.ref("typing");
+    const likesRef = db.ref("likes");
+    const notificationsRef = db.ref("notifications");
     
     // DOM Elements
     const authModal = document.getElementById('authModal');
@@ -210,23 +394,75 @@
     const signupBtn = document.getElementById('signupBtn');
     const loginUsername = document.getElementById('loginUsername');
     const loginPassword = document.getElementById('loginPassword');
+    const rememberMe = document.getElementById('rememberMe');
     const signupUsername = document.getElementById('signupUsername');
     const signupEmail = document.getElementById('signupEmail');
     const signupPassword = document.getElementById('signupPassword');
     const usernameError = document.getElementById('usernameError');
+    const profileImage = document.getElementById('profileImage');
+    const previewImage = document.getElementById('previewImage');
+    const previewImageContainer = document.getElementById('previewImageContainer');
+    const removeImage = document.getElementById('removeImage');
+    const profileUploadContainer = document.getElementById('profileUploadContainer');
+    const userBio = document.getElementById('userBio');
     const userInfo = document.getElementById('userInfo');
+    const userAvatar = document.getElementById('userAvatar');
     const displayUsername = document.getElementById('displayUsername');
     const userInitial = document.getElementById('userInitial');
+    const userBioDisplay = document.getElementById('userBioDisplay');
+    const notificationBtn = document.getElementById('notificationBtn');
+    const unreadCount = document.getElementById('unreadCount');
+    const settingsBtn = document.getElementById('settingsBtn');
     const logoutBtn = document.getElementById('logoutBtn');
     const chat = document.getElementById('chat');
     const message = document.getElementById('message');
     const send = document.getElementById('send');
     const messageInput = document.getElementById('messageInput');
     const onlineCount = document.getElementById('onlineCount');
+    const attachFileBtn = document.getElementById('attachFileBtn');
+    const fileUploadModal = document.getElementById('fileUploadModal');
+    const fileDropZone = document.getElementById('fileDropZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const fileIcon = document.getElementById('fileIcon');
+    const removeFile = document.getElementById('removeFile');
+    const closeFileUpload = document.getElementById('closeFileUpload');
+    const cancelUpload = document.getElementById('cancelUpload');
+    const confirmUpload = document.getElementById('confirmUpload');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const typingDots = document.getElementById('typingDots');
+    const filePreviewModal = document.getElementById('filePreviewModal');
+    const closePreview = document.getElementById('closePreview');
+    const previewContent = document.getElementById('previewContent');
+    const previewFileName = document.getElementById('previewFileName');
+    const downloadFileBtn = document.getElementById('downloadFileBtn');
+    const notificationCenter = document.getElementById('notificationCenter');
+    const messageSound = document.getElementById('messageSound');
+    const errorSound = document.getElementById('errorSound');
     
     // State
     let currentUser = null;
     let isUsernameAvailable = false;
+    let selectedFile = null;
+    let userTypingTimeout = null;
+    let lastSeenNotifications = 0;
+    let isTyping = false;
+    const ADMIN_USERNAMES = ['tixu', 'admin', 'owner']; // Owner accounts
+    
+    // Check for auto-login if it's the owner
+    function checkAutoLogin() {
+      const savedUser = getCookie('tixu_user');
+      const savedPass = getCookie('tixu_pass');
+      
+      if (savedUser && savedPass) {
+        loginUsername.value = savedUser;
+        loginPassword.value = savedPass;
+        rememberMe.checked = true;
+        handleLogin();
+      }
+    }
     
     // Event Listeners
     authBtn.addEventListener('click', () => {
@@ -262,13 +498,173 @@
     });
     
     signupUsername.addEventListener('input', checkUsernameAvailability);
-    
     loginBtn.addEventListener('click', handleLogin);
     signupBtn.addEventListener('click', handleSignup);
     logoutBtn.addEventListener('click', handleLogout);
     send.addEventListener('click', sendMessage);
+    
     message.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') sendMessage();
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+    
+    message.addEventListener('input', () => {
+      // Send typing indicator
+      if (currentUser && !isTyping) {
+        isTyping = true;
+        typingRef.child(currentUser).set(true);
+      }
+      
+      // Reset typing status after 3 seconds of inactivity
+      clearTimeout(userTypingTimeout);
+      userTypingTimeout = setTimeout(() => {
+        if (currentUser) {
+          isTyping = false;
+          typingRef.child(currentUser).remove();
+        }
+      }, 3000);
+    });
+    
+    // Profile image upload
+    profileUploadContainer.addEventListener('click', () => {
+      profileImage.click();
+    });
+    
+    profileImage.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        if (file.size > 2 * 1024 * 1024) { // 2MB limit
+          showNotification('File too large! Max 2MB allowed', 'error');
+          return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          previewImage.src = event.target.result;
+          previewImageContainer.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+    
+    removeImage.addEventListener('click', () => {
+      profileImage.value = '';
+      previewImageContainer.classList.add('hidden');
+    });
+    
+    // File upload
+    attachFileBtn.addEventListener('click', () => {
+      if (!currentUser) {
+        showNotification('Please login to upload files', 'error');
+        return;
+      }
+      fileUploadModal.classList.remove('hidden');
+    });
+    
+    closeFileUpload.addEventListener('click', () => {
+      fileUploadModal.classList.add('hidden');
+    });
+    
+    cancelUpload.addEventListener('click', () => {
+      selectedFile = null;
+      fileInfo.classList.add('hidden');
+      fileInput.value = '';
+      fileUploadModal.classList.add('hidden');
+    });
+    
+    fileDropZone.addEventListener('click', () => {
+      fileInput.click();
+    });
+    
+    fileDropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      fileDropZone.classList.add('border-purple-600', 'bg-gray-800');
+    });
+    
+    fileDropZone.addEventListener('dragleave', () => {
+      fileDropZone.classList.remove('border-purple-600', 'bg-gray-800');
+    });
+    
+    fileDropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      fileDropZone.classList.remove('border-purple-600', 'bg-gray-800');
+      
+      if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        handleFileSelect();
+      }
+    });
+    
+    fileInput.addEventListener('change', handleFileSelect);
+    
+    function handleFileSelect() {
+      selectedFile = fileInput.files[0];
+      
+      if (selectedFile) {
+        if (selectedFile.size > 5 * 1024 * 1024) { // 5MB limit
+          showNotification('File too large! Max 5MB allowed', 'error');
+          return;
+        }
+        
+        fileName.textContent = selectedFile.name;
+        fileSize.textContent = formatFileSize(selectedFile.size);
+        
+        // Set appropriate icon
+        const fileType = selectedFile.type.split('/')[0];
+        const fileExtension = selectedFile.name.split('.').pop().toLowerCase();
+        
+        let iconClass = 'fa-file';
+        if (fileType === 'image') iconClass = 'fa-file-image';
+        else if (fileType === 'video') iconClass = 'fa-file-video';
+        else if (fileType === 'audio') iconClass = 'fa-file-audio';
+        else if (fileExtension === 'pdf') iconClass = 'fa-file-pdf';
+        else if (['doc', 'docx'].includes(fileExtension)) iconClass = 'fa-file-word';
+        else if (['xls', 'xlsx'].includes(fileExtension)) iconClass = 'fa-file-excel';
+        else if (['ppt', 'pptx'].includes(fileExtension)) iconClass = 'fa-file-powerpoint';
+        else if (['zip', 'rar', '7z'].includes(fileExtension)) iconClass = 'fa-file-archive';
+        
+        fileIcon.className = `fas ${iconClass} text-gray-400 mr-3`;
+        
+        fileInfo.classList.remove('hidden');
+        confirmUpload.disabled = false;
+      }
+    }
+    
+    removeFile.addEventListener('click', () => {
+      selectedFile = null;
+      fileInfo.classList.add('hidden');
+      fileInput.value = '';
+      confirmUpload.disabled = true;
+    });
+    
+    confirmUpload.addEventListener('click', () => {
+      if (selectedFile && currentUser) {
+        uploadFile(selectedFile);
+        fileUploadModal.classList.add('hidden');
+      }
+    });
+    
+    closePreview.addEventListener('click', () => {
+      filePreviewModal.classList.add('hidden');
+    });
+    
+    // Check for cookies on load
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAutoLogin();
+      
+      // Listen for notifications
+      notificationsRef.on('child_added', (snapshot) => {
+        if (currentUser) {
+          const notification = snapshot.val();
+          if (notification.recipient === currentUser && notification.timestamp > lastSeenNotifications) {
+            if (notification.type === 'message' && !isMessageVisible(notification.messageId)) {
+              showMessageNotification(notification);
+            }
+            playSound('message');
+          }
+        }
+      });
     });
     
     // Functions
@@ -276,6 +672,13 @@
       const username = signupUsername.value.trim().toLowerCase();
       if (username.length < 3) {
         usernameError.textContent = 'Username must be at least 3 characters';
+        usernameError.classList.remove('hidden');
+        isUsernameAvailable = false;
+        return;
+      }
+      
+      if (ADMIN_USERNAMES.includes(username)) {
+        usernameError.textContent = 'This username is reserved';
         usernameError.classList.remove('hidden');
         isUsernameAvailable = false;
         return;
@@ -298,22 +701,29 @@
       const password = loginPassword.value.trim();
       
       if (!username || !password) {
-        alert('Please enter both username and password');
+        showNotification('Please enter both username and password', 'error');
         return;
       }
       
-      // In a real app, you would verify credentials properly
-      // This is just a demo implementation
       usersRef.child(username).once('value', (snapshot) => {
         if (snapshot.exists()) {
           const userData = snapshot.val();
-          if (password === userData.password) { // In real app, use proper password hashing
-            loginSuccess(username);
+          
+          // For demo purposes, we're checking plain text password
+          // In production, you should use proper authentication with Firebase Auth
+          if (password === userData.password) {
+            // If "Remember Me" is checked
+            if (rememberMe.checked || ADMIN_USERNAMES.includes(username)) {
+              setCookie('tixu_user', username, 30);
+              setCookie('tixu_pass', password, 30);
+            }
+            
+            loginSuccess(username, userData);
           } else {
-            alert('Incorrect password');
+            showNotification('Incorrect password', 'error');
           }
         } else {
-          alert('Username not found');
+          showNotification('Username not found', 'error');
         }
       });
     }
@@ -322,37 +732,68 @@
       const username = signupUsername.value.trim().toLowerCase();
       const email = signupEmail.value.trim();
       const password = signupPassword.value.trim();
+      const bio = userBio.value.trim();
       
       if (!username || !email || !password) {
-        alert('Please fill in all fields');
+        showNotification('Please fill in all fields', 'error');
         return;
       }
       
       if (!isUsernameAvailable) {
-        alert('Please choose an available username');
+        showNotification('Please choose an available username', 'error');
         return;
       }
       
       if (password.length < 6) {
-        alert('Password must be at least 6 characters');
+        showNotification('Password must be at least 6 characters', 'error');
         return;
       }
       
-      // In a real app, you would hash the password before storing
-      usersRef.child(username).set({
+      if (!validateEmail(email)) {
+        showNotification('Please enter a valid email', 'error');
+        return;
+      }
+      
+      const userData = {
         username: username,
         email: email,
         password: password, // Never store plain text passwords in production!
+        bio: bio,
         createdAt: firebase.database.ServerValue.TIMESTAMP
-      }).then(() => {
-        loginSuccess(username);
-      }).catch((error) => {
-        console.error('Error creating user:', error);
-        alert('Error creating account. Please try again.');
-      });
+      };
+      
+      // If profile image is uploaded
+      if (profileImage.files[0]) {
+        const file = profileImage.files[0];
+        const storageRef = storage.ref(`profile_images/${username}`);
+        
+        storageRef.put(file).then((snapshot) => {
+          return snapshot.ref.getDownloadURL();
+        }).then((downloadURL) => {
+          userData.profileImage = downloadURL;
+          completeUserRegistration(username, userData);
+        }).catch((error) => {
+          console.error('Error uploading profile image:', error);
+          completeUserRegistration(username, userData);
+        });
+      } else {
+        completeUserRegistration(username, userData);
+      }
     }
     
-    function loginSuccess(username) {
+    function completeUserRegistration(username, userData) {
+      usersRef.child(username).set(userData)
+        .then(() => {
+          showNotification('Account created successfully!', 'success');
+          loginSuccess(username, userData);
+        })
+        .catch((error) => {
+          console.error('Error creating user:', error);
+          showNotification('Error creating account. Please try again.', 'error');
+        });
+    }
+    
+    function loginSuccess(username, userData) {
       currentUser = username;
       
       // Update UI
@@ -361,9 +802,21 @@
       userInfo.classList.remove('hidden');
       displayUsername.textContent = username;
       userInitial.textContent = username.charAt(0).toUpperCase();
+      userBioDisplay.textContent = userData?.bio || '';
       messageInput.classList.remove('hidden');
       message.disabled = false;
       send.disabled = false;
+      
+      // Set profile image if available
+      if (userData?.profileImage) {
+        userAvatar.innerHTML = '';
+        const img = document.createElement('img');
+        img.src = userData.profileImage;
+        img.className = 'w-full h-full rounded-full object-cover';
+        userAvatar.appendChild(img);
+      } else {
+        userAvatar.innerHTML = `<span class="uppercase">${username.charAt(0)}</span>`;
+      }
       
       // Clear welcome message
       chat.innerHTML = '';
@@ -373,10 +826,17 @@
       userOnlineRef.set(true);
       userOnlineRef.onDisconnect().remove();
       
-      // Load messages
-      chatRef.on('child_added', (snapshot) => {
+      // Load existing messages
+      chatRef.orderByChild('timestamp').limitToLast(50).on('child_added', (snapshot) => {
         const msg = snapshot.val();
-        addMessageToChat(msg.user, msg.text, msg.timestamp);
+        if (!document.getElementById(`msg-${snapshot.key}`)) {
+          addMessageToChat(msg.user, msg.text, msg.timestamp, snapshot.key, msg.file);
+        }
+        
+        // Scroll to bottom if it's a new message
+        if (msg.timestamp > Date.now() - 5000) {
+          chat.scrollTop = chat.scrollHeight;
+        }
       });
       
       // Update online count
@@ -384,12 +844,34 @@
         const count = snapshot.numChildren();
         onlineCount.textContent = `${count} online`;
       });
+      
+      // Listen for typing indicators
+      typingRef.on('child_added', (snapshot) => {
+        if (snapshot.key !== currentUser) {
+          const typingUser = snapshot.key;
+          usersRef.child(typingUser).once('value', (userSnapshot) => {
+            const username = userSnapshot.val()?.username || typingUser;
+            typingIndicator.textContent = `${username} is typing...`;
+            typingIndicator.classList.remove('hidden');
+          });
+        }
+      });
+      
+      typingRef.on('child_removed', () => {
+        typingIndicator.classList.add('hidden');
+      });
+      
+      // Load notifications
+      notificationsRef.orderByChild('recipient').equalTo(username).on('child_added', (snapshot) => {
+        lastSeenNotifications = Math.max(lastSeenNotifications, snapshot.val().timestamp);
+      });
     }
     
     function handleLogout() {
       // Remove from online users
       if (currentUser) {
         onlineRef.child(currentUser).remove();
+        typingRef.child(currentUser).remove();
       }
       
       // Reset UI
@@ -400,56 +882,433 @@
       chat.innerHTML = `
         <div class="text-center py-10 text-gray-500">
           <i class="fas fa-comments text-4xl mb-3"></i>
-          <p>Welcome to sz games! Please login to start messaging.</p>
+          <p>Welcome to TIXU Cloud! Please login to start messaging.</p>
         </div>
       `;
       
-      // Clear form fields
-      loginUsername.value = '';
-      loginPassword.value = '';
-      signupUsername.value = '';
-      signupEmail.value = '';
-      signupPassword.value = '';
-      usernameError.classList.add('hidden');
+      // Clear cookies
+      deleteCookie('tixu_user');
+      deleteCookie('tixu_pass');
     }
     
     function sendMessage() {
       const text = message.value.trim();
-      if (!text || !currentUser) return;
+      if (!currentUser) return;
       
-      chatRef.push({
+      if (!text && !selectedFile) {
+        showNotification('Please enter a message or attach a file', 'error');
+        return;
+      }
+
+      send.disabled = true;
+      message.disabled = true;
+      
+      const messageData = {
         user: currentUser,
         text: text,
         timestamp: firebase.database.ServerValue.TIMESTAMP
-      }).then(() => {
-        message.value = '';
-      }).catch((error) => {
-        console.error('Error sending message:', error);
+      };
+      
+      // If there's a file, upload it first
+      if (selectedFile) {
+        uploadFile(selectedFile).then((fileUrl) => {
+          messageData.file = {
+            url: fileUrl,
+            name: selectedFile.name,
+            type: selectedFile.type,
+            size: selectedFile.size
+          };
+          saveMessageToDatabase(messageData);
+        }).catch((error) => {
+          showNotification('Error uploading file', 'error');
+          console.error('File upload error:', error);
+        });
+      } else {
+        saveMessageToDatabase(messageData);
+      }
+    }
+    
+    function saveMessageToDatabase(messageData) {
+      chatRef.push(messageData)
+        .then((ref) => {
+          // Clear input
+          message.value = '';
+          selectedFile = null;
+          fileInput.value = '';
+          
+          // Notify other users except sender
+          usersRef.once('value', (snapshot) => {
+            snapshot.forEach((userSnapshot) => {
+              const user = userSnapshot.key;
+              if (user !== currentUser) {
+                notificationsRef.push({
+                  recipient: user,
+                  type: 'message',
+                  messageId: ref.key,
+                  sender: currentUser,
+                  text: messageData.text,
+                  timestamp: Date.now()
+                });
+              }
+            });
+          });
+        })
+        .catch((error) => {
+          console.error('Error sending message:', error);
+          showNotification('Error sending message', 'error');
+        });
+    }
+    
+    function uploadFile(file) {
+      return new Promise((resolve, reject) => {
+        const storageRef = storage.ref(`chat_files/${currentUser}/${Date.now()}_${file.name}`);
+        
+        storageRef.put(file).then((snapshot) => {
+          return snapshot.ref.getDownloadURL();
+        }).then((downloadURL) => {
+          resolve(downloadURL);
+        }).catch((error) => {
+          reject(error);
+        });
       });
     }
     
-    function addMessageToChat(user, text, timestamp) {
+    function addMessageToChat(user, text, timestamp, messageId, fileData) {
       const isCurrentUser = user === currentUser;
       const date = new Date(timestamp);
       const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const dateString = date.toLocaleDateString();
+      
+      // Check if message already exists
+      if (document.getElementById(`msg-${messageId}`)) return;
       
       const messageDiv = document.createElement('div');
       messageDiv.className = `chat-message flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`;
+      messageDiv.id = `msg-${messageId}`;
       
-      messageDiv.innerHTML = `
-        <div class="max-w-xs md:max-w-md lg:max-w-lg ${isCurrentUser ? 'brand-bg' : 'bg-gray-800'} rounded-2xl p-4 ${isCurrentUser ? 'rounded-tr-none' : 'rounded-tl-none'}">
-          ${!isCurrentUser ? `<div class="font-bold text-purple-400">${user}</div>` : ''}
-          <div class="mt-1">${text}</div>
-          <div class="text-xs text-gray-400 mt-1 text-right">${timeString}</div>
+      // Get user data once
+      let userNickname = user;
+      let userAvatarUrl = '';
+      
+      usersRef.child(user).once('value', (snapshot) => {
+        const userData = snapshot.val();
+        if (userData) {
+          userNickname = userData.username || user;
+          userAvatarUrl = userData.profileImage;
+        }
+        
+        // Build message HTML
+        let fileContent = '';
+        if (fileData) {
+          const fileType = fileData.type.split('/')[0];
+          
+          if (fileType === 'image') {
+            fileContent = `
+              <div class="mt-2 rounded-lg overflow-hidden cursor-pointer" onclick="previewFile('${fileData.url}', '${fileData.name}')">
+                <img src="${fileData.url}" alt="${fileData.name}" class="max-w-xs max-h-64 object-contain">
+              </div>
+            `;
+          } else {
+            const fileIcon = getFileIcon(fileData.name, fileData.type);
+            fileContent = `
+              <div class="mt-2 bg-gray-800 rounded-lg p-3 flex items-center cursor-pointer" onclick="previewFile('${fileData.url}', '${fileData.name}')">
+                <i class="fas ${fileIcon} text-2xl text-purple-500 mr-3"></i>
+                <div>
+                  <p class="text-sm font-medium">${fileData.name}</p>
+                  <p class="text-xs text-gray-400">${formatFileSize(fileData.size)}</p>
+                </div>
+              </div>
+            `;
+          }
+        }
+        
+        let likeButton = '';
+        if (!isCurrentUser) {
+          likeButton = `
+            <button class="text-gray-400 hover:text-red-500 text-xs mt-1" onclick="likeMessage('${messageId}')">
+              <i class="far fa-heart"></i> Like
+            </button>
+          `;
+        }
+        
+        let userAvatar = '';
+        if (userAvatarUrl) {
+          userAvatar = `<img src="${userAvatarUrl}" alt="${userNickname}" class="w-8 h-8 rounded-full object-cover mr-2">`;
+        } else {
+          userAvatar = `<div class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold mr-2">${userNickname.charAt(0).toUpperCase()}</div>`;
+        }
+        
+        messageDiv.innerHTML = `
+          <div class="max-w-xs md:max-w-md lg:max-w-lg ${isCurrentUser ? 'brand-bg' : 'bg-gray-800'} rounded-2xl p-4 ${isCurrentUser ? 'rounded-tr-none' : 'rounded-tl-none'}">
+            ${!isCurrentUser ? `
+              <div class="flex items-center">
+                ${userAvatar}
+                <div>
+                  <div class="font-bold text-purple-400">${userNickname}</div>
+                  <div class="text-xs text-gray-400">${dateString}</div>
+                </div>
+              </div>
+            ` : ''}
+            ${text ? `<div class="mt-1 break-words">${text}</div>` : ''}
+            ${fileContent}
+            <div class="flex items-center justify-between mt-2">
+              <div class="text-xs text-gray-400">${timeString}</div>
+              <div id="likeCount-${messageId}" class="text-xs text-gray-400 flex items-center"></div>
+            </div>
+            ${likeButton}
+            <button class="text-gray-400 hover:text-purple-500 text-xs mt-1 ml-2" onclick="replyToMessage('${userNickname}', '${text || 'Sent a file'}')">
+              <i class="fas fa-reply"></i> Reply
+            </button>
+          </div>
+        `;
+        
+        chat.appendChild(messageDiv);
+        chat.scrollTop = chat.scrollHeight;
+        
+        // Load like count and display if > 0
+        likesRef.child(messageId).once('value', (snapshot) => {
+          const likes = snapshot.val() || {};
+          const likeCount = Object.keys(likes).length;
+          if (likeCount > 0) {
+            document.getElementById(`likeCount-${messageId}`).innerHTML = `
+              <i class="fas fa-heart text-red-500 mr-1"></i> ${likeCount}
+            `;
+          }
+        });
+      });
+      
+      // Play sound for new messages if not from current user
+      if (!isCurrentUser) {
+        playSound('message');
+      }
+    }
+    
+    function showMessageNotification(notification) {
+      const notificationDiv = document.createElement('div');
+      notificationDiv.className = 'notification bg-gray-800 rounded-lg p-4 border-l-4 border-purple-500 shadow-lg';
+      notificationDiv.innerHTML = `
+        <div class="flex items-center">
+          <div class="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white mr-3">
+            <i class="fas fa-envelope"></i>
+          </div>
+          <div>
+            <p class="font-medium text-sm">New message from ${notification.sender}</p>
+            <p class="text-xs text-gray-400 truncate">${notification.text || 'Sent a file'}</p>
+          </div>
+          <button class="ml-auto text-gray-400 hover:text-white" onclick="this.parentElement.parentElement.remove()">
+            <i class="fas fa-times"></i>
+          </button>
         </div>
       `;
       
-      chat.appendChild(messageDiv);
-      chat.scrollTop = chat.scrollHeight;
+      notificationCenter.appendChild(notificationDiv);
+      
+      // Auto remove after 5 seconds
+      setTimeout(() => {
+        notificationDiv.remove();
+      }, 5000);
+      
+      // Update unread count
+      updateUnreadCount();
     }
+    
+    function updateUnreadCount() {
+      if (!currentUser) return;
+      
+      notificationsRef.orderByChild('recipient').equalTo(currentUser)
+        .once('value', (snapshot) => {
+          let count = 0;
+          snapshot.forEach((childSnapshot) => {
+            if (childSnapshot.val().timestamp > lastSeenNotifications) {
+              count++;
+            }
+          });
+          
+          if (count > 0) {
+            unreadCount.textContent = count;
+            unreadCount.classList.remove('hidden');
+            notificationBtn.classList.add('unread-notification');
+          } else {
+            unreadCount.classList.add('hidden');
+            notificationBtn.classList.remove('unread-notification');
+          }
+        });
+    }
+    
+    function showNotification(message, type = 'info') {
+      const notificationDiv = document.createElement('div');
+      notificationDiv.className = `notification bg-gray-800 rounded-lg p-4 border-l-4 ${type === 'error' ? 'border-red-500' : type === 'success' ? 'border-green-500' : 'border-purple-500'} shadow-lg`;
+      notificationDiv.innerHTML = `
+        <div class="flex items-center">
+          <div class="w-8 h-8 rounded-full ${type === 'error' ? 'bg-red-500' : type === 'success' ? 'bg-green-500' : 'bg-purple-500'} flex items-center justify-center text-white mr-3">
+            <i class="fas ${type === 'error' ? 'fa-exclamation' : type === 'success' ? 'fa-check' : 'fa-info-circle'}"></i>
+          </div>
+          <div>
+            <p class="font-medium text-sm">${message}</p>
+          </div>
+          <button class="ml-auto text-gray-400 hover:text-white" onclick="this.parentElement.parentElement.remove()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      `;
+      
+      notificationCenter.appendChild(notificationDiv);
+      
+      // Auto remove after 5 seconds
+      setTimeout(() => {
+        notificationDiv.remove();
+      }, 5000);
+      
+      // Play sound
+      playSound(type === 'error' ? 'error' : 'notification');
+    }
+    
+    function playSound(type) {
+      const audio = type === 'error' ? errorSound : 
+                   type === 'notification' ? notificationSound : messageSound;
+      audio.currentTime = 0;
+      audio.play().catch(e => console.log('Audio play failed:', e));
+    }
+    
+    // Helper functions
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+    
+    function getFileIcon(filename, fileType) {
+      const extension = filename.split('.').pop().toLowerCase();
+      const type = fileType.split('/')[0];
+      
+      switch (type) {
+        case 'image':
+          return 'fa-file-image';
+        case 'video':
+          return 'fa-file-video';
+        case 'audio':
+          return 'fa-file-audio';
+        default:
+          switch (extension) {
+            case 'pdf':
+              return 'fa-file-pdf';
+            case 'doc':
+            case 'docx':
+              return 'fa-file-word';
+            case 'xls':
+            case 'xlsx':
+              return 'fa-file-excel';
+            case 'ppt':
+            case 'pptx':
+              return 'fa-file-powerpoint';
+            case 'zip':
+            case 'rar':
+            case '7z':
+              return 'fa-file-archive';
+            default:
+              return 'fa-file';
+          }
+      }
+    }
+    
+    function validateEmail(email) {
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return re.test(email);
+    }
+    
+    function setCookie(name, value, days) {
+      const date = new Date();
+      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+      const expires = "expires=" + date.toUTCString();
+      document.cookie = name + "=" + value + ";" + expires + ";path=/";
+    }
+    
+    function getCookie(name) {
+      const value = "; " + document.cookie;
+      const parts = value.split("; " + name + "=");
+      if (parts.length === 2) return parts.pop().split(";").shift();
+    }
+    
+    function deleteCookie(name) {
+      document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    }
+    
+    function isMessageVisible(messageId) {
+      return !!document.getElementById(`msg-${messageId}`);
+    }
+    
+    // Global functions for HTML event handlers
+    window.likeMessage = function(messageId) {
+      if (!currentUser) return;
+      
+      likesRef.child(messageId).child(currentUser).set(true)
+        .then(() => {
+          const likeCountEl = document.getElementById(`likeCount-${messageId}`);
+          if (likeCountEl) {
+            likesRef.child(messageId).once('value', (snapshot) => {
+              const likes = snapshot.val() || {};
+              const likeCount = Object.keys(likes).length;
+              likeCountEl.innerHTML = `
+                <i class="fas fa-heart text-red-500 mr-1"></i> ${likeCount}
+              `;
+            });
+          }
+        });
+    };
+    
+    window.replyToMessage = function(username, messageText) {
+      document.getElementById('message').value = `@${username} ${messageText}`;
+      document.getElementById('message').focus();
+    };
+
+    window.previewFile = function(fileUrl, fileName) {
+      previewFileName.textContent = fileName;
+      previewContent.innerHTML = '';
+      
+      const fileExtension = fileName.split('.').pop().toLowerCase();
+      const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension);
+      const isVideo = ['mp4', 'webm', 'ogg'].includes(fileExtension);
+      const isAudio = ['mp3', 'wav', 'ogg'].includes(fileExtension);
+      
+      if (isImage) {
+        const img = document.createElement('img');
+        img.src = fileUrl;
+        img.className = 'max-w-full max-h-[70vh] object-contain';
+        previewContent.appendChild(img);
+      } else if (isVideo) {
+        const video = document.createElement('video');
+        video.src = fileUrl;
+        video.controls = true;
+        video.className = 'max-w-full max-h-[70vh]';
+        previewContent.appendChild(video);
+      } else if (isAudio) {
+        const audio = document.createElement('audio');
+        audio.src = fileUrl;
+        audio.controls = true;
+        audio.className = 'w-full';
+        previewContent.appendChild(audio);
+      } else {
+        // For other file types, show a download link
+        previewContent.innerHTML = `
+          <div class="text-center p-8">
+            <i class="fas fa-file-download text-6xl text-purple-500 mb-4"></i>
+            <p class="text-lg">This file can't be previewed</p>
+            <p class="text-gray-400 mt-2">Download the file to view its contents</p>
+          </div>
+        `;
+      }
+      
+      // Set download href
+      downloadFileBtn.href = fileUrl;
+      downloadFileBtn.download = fileName;
+      
+      filePreviewModal.classList.remove('hidden');
+    };
     
     // Initialize
     loginTab.click();
   </script>
 </body>
-  </html>
+</html>
